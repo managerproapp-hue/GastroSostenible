@@ -86,6 +86,7 @@ export const INITIAL_PROJECT_STATE: ProjectState = {
   meta: {
     teamName: '',
     centerName: '',
+    centerAddress: '',
     createdAt: 0
   },
   phase1: { justification: '', targetAudience: '', gastronomicZone: '' },
@@ -112,6 +113,7 @@ export const SAMPLE_PROJECT_STATE: ProjectState = {
   meta: {
     teamName: 'La Barraca Sostenible',
     centerName: 'CIFP Hostelería y Turismo',
+    centerAddress: 'Senda de la Arboleja, s/n',
     groupNumber: 'G-01',
     projectName: 'Recuperación Huertana',
     createdAt: Date.now(),

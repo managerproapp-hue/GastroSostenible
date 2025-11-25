@@ -5,7 +5,7 @@ import { ProjectState, Member, ViewState } from './types';
 import { Phase1Editor, Phase2Editor, Phase3Editor, Phase4Editor, Phase5Editor, Phase6Editor } from './components/PhaseEditors';
 import { Dashboard } from './components/Dashboard';
 import { GuideView } from './components/GuideView';
-import { Upload, Download, Printer, Menu, FileText, Users, Calculator, Calendar, BookOpen, LayoutDashboard, LogOut, PlayCircle, FolderOpen, Plus, Eye, Save, HelpCircle, ArrowRight } from 'lucide-react';
+import { Upload, Download, Printer, Menu, FileText, Users, Calculator, Calendar, BookOpen, LayoutDashboard, LogOut, PlayCircle, FolderOpen, Plus, Eye, Save, HelpCircle, ArrowRight, X } from 'lucide-react';
 
 // Helper seguro para IDs
 const generateId = () => Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
@@ -45,7 +45,7 @@ export default function App() {
     return baseState;
   });
 
-  const [view, setView] = useState<ViewState>('LANDING');
+  const [view, setView] = useState<ViewState | 'FILE_MANAGER'>('LANDING');
   const [activePhase, setActivePhase] = useState<number>(0); 
   const [currentUser, setCurrentUser] = useState<Member | null>(null);
   const [isSidebarOpen, setSidebarOpen] = useState(true);
@@ -58,66 +58,73 @@ export default function App() {
     localStorage.setItem('gastro_project', JSON.stringify(project));
   }, [project]);
 
-  // Smart Merge
+  // Smart Merge Logic (Extracted for use in multiple places)
+  const processMerge = async (file: File) => {
+      const text = await file.text();
+      const importedData = JSON.parse(text) as ProjectState;
+      
+      if (!importedData || !importedData.meta) {
+          throw new Error("Archivo no válido.");
+      }
+
+      const merged = { ...project };
+
+      // Merge Members
+      (importedData.members || []).forEach(m => {
+        if (!merged.members.find(em => em.id === m.id)) {
+          merged.members.push(m);
+        }
+      });
+
+      // Helper to merge lists
+      const mergeList = (localList: any[], importedList: any[]) => {
+          const idSet = new Set(localList.map(i => i.id));
+          const newItems = importedList.filter(i => !idSet.has(i.id));
+          return [...localList, ...newItems];
+      };
+      const mergeUpdates = (localList: any[], importedList: any[]) => {
+          const itemMap = new Map(localList.map(i => [i.id, i]));
+          importedList.forEach(i => itemMap.set(i.id, i));
+          return Array.from(itemMap.values());
+      }
+
+      merged.phase2.trends = mergeList(merged.phase2.trends || [], importedData.phase2?.trends || []);
+      merged.phase3.dishes = mergeUpdates(merged.phase3.dishes || [], importedData.phase3?.dishes || []);
+      merged.phase4.timeline = mergeUpdates(merged.phase4.timeline || [], importedData.phase4?.timeline || []);
+      merged.phase5.costings = mergeUpdates(merged.phase5.costings || [], importedData.phase5?.costings || []);
+      
+      const evalKey = (e: any) => `${e.evaluator}-${e.targetMember}`;
+      const localEvals = new Map((merged.phase6.evaluations || []).map(e => [evalKey(e), e]));
+      (importedData.phase6?.evaluations || []).forEach(e => localEvals.set(evalKey(e), e));
+      merged.phase6.evaluations = Array.from(localEvals.values());
+
+      if (importedData.phase1?.justification) merged.phase1.justification = importedData.phase1.justification;
+      if (importedData.phase1?.targetAudience) merged.phase1.targetAudience = importedData.phase1.targetAudience;
+      if (importedData.phase4?.introText) merged.phase4.introText = importedData.phase4.introText;
+      if (importedData.phase4?.objectivesText) merged.phase4.objectivesText = importedData.phase4.objectivesText;
+      
+      if (importedData.phase6?.introduction) merged.phase6.introduction = importedData.phase6.introduction;
+      if (importedData.phase6?.conclusions) merged.phase6.conclusions = importedData.phase6.conclusions;
+      if (importedData.phase6?.bibliography) merged.phase6.bibliography = importedData.phase6.bibliography;
+      
+      if (importedData.phase2?.canvas?.updatedBy?.timestamp > (merged.phase2?.canvas?.updatedBy?.timestamp || 0)) {
+          merged.phase2.canvas = importedData.phase2.canvas;
+      }
+      
+      // Update institutional data if newer or existing is empty
+      if (importedData.meta.logoBase64) merged.meta.logoBase64 = importedData.meta.logoBase64;
+      if (importedData.meta.groupPhotoBase64) merged.meta.groupPhotoBase64 = importedData.meta.groupPhotoBase64;
+      if (importedData.meta.centerName) merged.meta.centerName = importedData.meta.centerName;
+      if (importedData.meta.centerAddress) merged.meta.centerAddress = importedData.meta.centerAddress;
+
+      return { merged, teamName: importedData.meta.teamName };
+  };
+
   const executeSmartMerge = async (file: File) => {
     try {
-        const text = await file.text();
-        const importedData = JSON.parse(text) as ProjectState;
-        
-        if (!importedData || !importedData.meta) {
-            alert("Archivo no válido.");
-            return;
-        }
-
-        const merged = { ...project };
-
-        // Merge Members
-        (importedData.members || []).forEach(m => {
-          if (!merged.members.find(em => em.id === m.id)) {
-            merged.members.push(m);
-          }
-        });
-
-        // Helper to merge lists
-        const mergeList = (localList: any[], importedList: any[]) => {
-            const idSet = new Set(localList.map(i => i.id));
-            const newItems = importedList.filter(i => !idSet.has(i.id));
-            return [...localList, ...newItems];
-        };
-        const mergeUpdates = (localList: any[], importedList: any[]) => {
-            const itemMap = new Map(localList.map(i => [i.id, i]));
-            importedList.forEach(i => itemMap.set(i.id, i));
-            return Array.from(itemMap.values());
-        }
-
-        merged.phase2.trends = mergeList(merged.phase2.trends || [], importedData.phase2?.trends || []);
-        merged.phase3.dishes = mergeUpdates(merged.phase3.dishes || [], importedData.phase3?.dishes || []);
-        merged.phase4.timeline = mergeUpdates(merged.phase4.timeline || [], importedData.phase4?.timeline || []);
-        merged.phase5.costings = mergeUpdates(merged.phase5.costings || [], importedData.phase5?.costings || []);
-        
-        const evalKey = (e: any) => `${e.evaluator}-${e.targetMember}`;
-        const localEvals = new Map((merged.phase6.evaluations || []).map(e => [evalKey(e), e]));
-        (importedData.phase6?.evaluations || []).forEach(e => localEvals.set(evalKey(e), e));
-        merged.phase6.evaluations = Array.from(localEvals.values());
-
-        if (importedData.phase1?.justification) merged.phase1.justification = importedData.phase1.justification;
-        if (importedData.phase1?.targetAudience) merged.phase1.targetAudience = importedData.phase1.targetAudience;
-        if (importedData.phase4?.introText) merged.phase4.introText = importedData.phase4.introText;
-        if (importedData.phase4?.objectivesText) merged.phase4.objectivesText = importedData.phase4.objectivesText;
-        
-        if (importedData.phase6?.introduction) merged.phase6.introduction = importedData.phase6.introduction;
-        if (importedData.phase6?.conclusions) merged.phase6.conclusions = importedData.phase6.conclusions;
-        if (importedData.phase6?.bibliography) merged.phase6.bibliography = importedData.phase6.bibliography;
-        
-        if (importedData.phase2?.canvas?.updatedBy?.timestamp > (merged.phase2?.canvas?.updatedBy?.timestamp || 0)) {
-            merged.phase2.canvas = importedData.phase2.canvas;
-        }
-        
-        if (importedData.meta.logoBase64) merged.meta.logoBase64 = importedData.meta.logoBase64;
-        if (importedData.meta.groupPhotoBase64) merged.meta.groupPhotoBase64 = importedData.meta.groupPhotoBase64;
-
+        const { merged, teamName } = await processMerge(file);
         setProject(merged);
-        alert(`Fusión completada con datos de ${importedData.meta.teamName}.`);
+        alert(`Fusión completada con datos de ${teamName}.`);
     } catch (e) {
         console.error(e);
         alert("Error al leer el archivo.");
@@ -128,7 +135,7 @@ export default function App() {
     const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(project));
     const downloadAnchorNode = document.createElement('a');
     downloadAnchorNode.setAttribute("href", dataStr);
-    downloadAnchorNode.setAttribute("download", `aporte_${currentUser?.name || 'equipo'}.json`);
+    downloadAnchorNode.setAttribute("download", `aporte_${currentUser?.name || 'equipo'}_${new Date().toISOString().slice(0,10)}.json`);
     document.body.appendChild(downloadAnchorNode);
     downloadAnchorNode.click();
     downloadAnchorNode.remove();
@@ -150,11 +157,80 @@ export default function App() {
   };
   
   const initiatePrint = () => {
-      // Ask user mode
       const choice = window.confirm("¿Deseas imprimir la Memoria Final Completa (Aceptar) o solo la Memoria Parcial hasta Fase 4 (Cancelar)?");
       setPrintMode(choice ? 'FINAL' : 'PARTIAL');
       setView('PRINT');
   };
+
+  // --- MODAL: CENTRAL DE ARCHIVOS (PUZLE) ---
+  const FileManagerView = () => {
+      const [tab, setTab] = useState<'export' | 'merge' | 'backup'>('export');
+      
+      return (
+          <div className="fixed inset-0 bg-gray-900/90 z-50 flex items-center justify-center p-4">
+              <div className="bg-white w-full max-w-4xl rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
+                  <div className="bg-gray-100 p-4 border-b flex justify-between items-center">
+                      <h2 className="text-xl font-bold flex items-center gap-2"><FolderOpen className="text-blue-600"/> Gestión de Archivos (Puzle)</h2>
+                      <button onClick={() => setView('WORKSPACE')} className="text-gray-500 hover:text-black"><X/></button>
+                  </div>
+                  
+                  <div className="flex border-b">
+                      <button onClick={()=>setTab('export')} className={`flex-1 p-4 font-bold ${tab==='export' ? 'border-b-4 border-blue-600 text-blue-800 bg-blue-50' : 'text-gray-500 hover:bg-gray-50'}`}>1. Mis Aportes (Exportar)</button>
+                      <button onClick={()=>setTab('merge')} className={`flex-1 p-4 font-bold ${tab==='merge' ? 'border-b-4 border-green-600 text-green-800 bg-green-50' : 'text-gray-500 hover:bg-gray-50'}`}>2. Fusión (Importar)</button>
+                      <button onClick={()=>setTab('backup')} className={`flex-1 p-4 font-bold ${tab==='backup' ? 'border-b-4 border-red-600 text-red-800 bg-red-50' : 'text-gray-500 hover:bg-gray-50'}`}>3. Backups (Total)</button>
+                  </div>
+
+                  <div className="p-8 overflow-y-auto">
+                      {tab === 'export' && (
+                          <div className="text-center space-y-6">
+                              <div className="bg-blue-100 w-20 h-20 rounded-full flex items-center justify-center mx-auto text-blue-600"><Upload size={40}/></div>
+                              <h3 className="text-2xl font-bold text-gray-800">Exportar Mi Aporte</h3>
+                              <p className="text-gray-600 max-w-md mx-auto">Genera un archivo ligero con tus cambios recientes. Envíalo al Coordinador para que lo fusione.</p>
+                              <button onClick={handleExport} className="bg-blue-600 text-white px-8 py-4 rounded-xl font-bold shadow-lg hover:bg-blue-700 hover:scale-105 transition-transform flex items-center gap-3 mx-auto">
+                                  <Download/> Descargar Aporte ({currentUser?.name})
+                              </button>
+                          </div>
+                      )}
+
+                      {tab === 'merge' && (
+                          <div className="text-center space-y-6">
+                              <div className="bg-green-100 w-20 h-20 rounded-full flex items-center justify-center mx-auto text-green-600"><Users size={40}/></div>
+                              <h3 className="text-2xl font-bold text-gray-800">Fusión de Piezas</h3>
+                              <p className="text-gray-600 max-w-md mx-auto">Arrastra aquí los archivos de tus compañeros. El sistema sumará sus datos sin borrar los tuyos.</p>
+                              <div className="border-4 border-dashed border-green-200 bg-green-50 rounded-xl p-12 relative hover:bg-green-100 transition-colors">
+                                  <input type="file" accept=".json" onChange={(e) => { if(e.target.files?.[0]) executeSmartMerge(e.target.files[0]); }} className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"/>
+                                  <p className="text-green-800 font-bold">Suelta el archivo aquí o haz clic</p>
+                              </div>
+                          </div>
+                      )}
+
+                      {tab === 'backup' && (
+                          <div className="grid md:grid-cols-2 gap-8">
+                              <div className="bg-gray-50 p-6 rounded-xl border">
+                                  <h4 className="font-bold mb-2 flex items-center gap-2"><Save size={18}/> Crear Copia de Seguridad</h4>
+                                  <p className="text-sm text-gray-600 mb-4">Guarda el estado completo del proyecto (Maestro).</p>
+                                  <button onClick={handleExport} className="w-full bg-gray-800 text-white py-2 rounded font-bold hover:bg-black">Descargar Backup Total</button>
+                              </div>
+                              <div className="bg-red-50 p-6 rounded-xl border border-red-100">
+                                  <h4 className="font-bold mb-2 text-red-800 flex items-center gap-2"><ArrowRight size={18}/> Restaurar Proyecto</h4>
+                                  <p className="text-sm text-red-600 mb-4">⚠️ Cuidado: Esto sobrescribirá TODOS los datos actuales.</p>
+                                  <input type="file" accept=".json" onChange={(e) => { 
+                                      if(e.target.files?.[0]) {
+                                          if(window.confirm("¿Seguro que quieres restaurar? Se perderán los datos actuales no guardados.")) {
+                                              executeSmartMerge(e.target.files[0]).then(() => alert("Proyecto restaurado."));
+                                          }
+                                      }
+                                  }} className="block w-full text-sm text-red-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-red-100 file:text-red-700 hover:file:bg-red-200"/>
+                              </div>
+                          </div>
+                      )}
+                  </div>
+              </div>
+          </div>
+      );
+  };
+
+  // --- VISTAS EXISTENTES ---
 
   const LandingView = () => {
     const hasSavedProject = project.members.length > 0 && !!project.meta.teamName;
@@ -198,11 +274,6 @@ export default function App() {
                     <p className="text-gray-400">Restaura un archivo .JSON previo.</p>
                 </div>
             </div>
-            <div className="text-center animate-in fade-in duration-1000 delay-300">
-                 <button onClick={loadExampleProject} className="text-gray-500 hover:text-white underline transition-all text-sm flex items-center justify-center gap-2 mx-auto">
-                    <Eye size={16}/> Ver Proyecto de Ejemplo (Demo)
-                </button>
-            </div>
           </div>
         </div>
     );
@@ -218,21 +289,6 @@ export default function App() {
           const newMembers = [...membersDraft];
           newMembers[index] = { ...newMembers[index], [field]: value };
           setMembersDraft(newMembers);
-      };
-
-      const handleExportConfig = () => {
-          const configProject = {
-              ...project,
-              meta: setupMeta,
-              members: membersDraft.filter(m => m.name) as Member[]
-          };
-          const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(configProject));
-          const node = document.createElement('a');
-          node.setAttribute("href", dataStr);
-          node.setAttribute("download", "config_inicial.json");
-          document.body.appendChild(node);
-          node.click();
-          node.remove();
       };
 
       const finishSetup = () => {
@@ -256,7 +312,7 @@ export default function App() {
               <div className="bg-white rounded-xl shadow-xl max-w-4xl w-full overflow-hidden">
                   <div className="bg-indigo-600 p-6 text-white flex justify-between items-center">
                       <div>
-                        <h2 className="text-3xl font-serif font-bold">Configuración del Arquitecto (Fase 1)</h2>
+                        <h2 className="text-3xl font-serif font-bold">Configuración del Arquitecto</h2>
                         <p className="opacity-80">Define la constitución del equipo antes de comenzar.</p>
                       </div>
                       <button onClick={() => setView('LANDING')} className="text-xs bg-indigo-700 hover:bg-indigo-800 px-3 py-1 rounded">Volver</button>
@@ -264,27 +320,23 @@ export default function App() {
 
                   <div className="p-8 space-y-8">
                       <section>
-                          <h3 className="text-indigo-900 font-bold mb-4 flex items-center gap-2"><BookOpen size={20}/> Datos Generales</h3>
+                          <h3 className="text-indigo-900 font-bold mb-4 flex items-center gap-2"><BookOpen size={20}/> Datos Institucionales y del Proyecto</h3>
                           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                              <div>
-                                  <label className="block text-sm font-bold text-gray-700 mb-1">Nombre del Equipo</label>
-                                  <input className="w-full border p-2 rounded" placeholder="Ej: Los Innovadores" value={setupMeta.teamName} onChange={e => setSetupMeta({...setupMeta, teamName: e.target.value})} />
-                              </div>
                               <div>
                                   <label className="block text-sm font-bold text-gray-700 mb-1">Nombre del Centro</label>
                                   <input className="w-full border p-2 rounded" placeholder="Ej: CIFP Hostelería" value={setupMeta.centerName || ''} onChange={e => setSetupMeta({...setupMeta, centerName: e.target.value})} />
                               </div>
                               <div>
-                                  <label className="block text-sm font-bold text-gray-700 mb-1">Número de Grupo</label>
-                                  <input className="w-full border p-2 rounded" placeholder="Ej: G-04" value={setupMeta.groupNumber || ''} onChange={e => setSetupMeta({...setupMeta, groupNumber: e.target.value})} />
+                                  <label className="block text-sm font-bold text-gray-700 mb-1">Dirección del Centro</label>
+                                  <input className="w-full border p-2 rounded" placeholder="Ej: C/ Mayor 12" value={setupMeta.centerAddress || ''} onChange={e => setSetupMeta({...setupMeta, centerAddress: e.target.value})} />
+                              </div>
+                              <div>
+                                  <label className="block text-sm font-bold text-gray-700 mb-1">Nombre del Equipo</label>
+                                  <input className="w-full border p-2 rounded" placeholder="Ej: Los Innovadores" value={setupMeta.teamName} onChange={e => setSetupMeta({...setupMeta, teamName: e.target.value})} />
                               </div>
                               <div>
                                   <label className="block text-sm font-bold text-gray-700 mb-1">Nombre del Proyecto</label>
                                   <input className="w-full border p-2 rounded" placeholder="Ej: GastroMurcia Experience" value={setupMeta.projectName || ''} onChange={e => setSetupMeta({...setupMeta, projectName: e.target.value})} />
-                              </div>
-                              <div>
-                                  <label className="block text-sm font-bold text-gray-700 mb-1">Fecha de Entrega</label>
-                                  <input type="date" className="w-full border p-2 rounded" value={setupMeta.deliveryDate || ''} onChange={e => setSetupMeta({...setupMeta, deliveryDate: e.target.value})} />
                               </div>
                               <div className="md:col-span-2">
                                   <label className="block text-sm font-bold text-gray-700 mb-1">Zona Gastronómica (Elección Irreversible)</label>
@@ -301,35 +353,21 @@ export default function App() {
                       </section>
 
                       <section>
-                          <h3 className="text-indigo-900 font-bold mb-4 flex items-center gap-2"><Users size={20}/> Asignación de Roles y Responsabilidades</h3>
+                          <h3 className="text-indigo-900 font-bold mb-4 flex items-center gap-2"><Users size={20}/> Asignación de Roles</h3>
                           <div className="space-y-4">
                               {ROLES.map((role, idx) => (
-                                  <div key={role} className="border rounded-lg p-4 bg-gray-50 hover:bg-white hover:shadow transition-all">
+                                  <div key={role} className="border rounded-lg p-4 bg-gray-50 hover:bg-white transition-all">
                                       <div className="flex items-start gap-4">
                                           <div className="bg-indigo-100 text-indigo-700 w-8 h-8 rounded-full flex items-center justify-center font-bold shrink-0">{idx + 1}</div>
                                           <div className="flex-1">
                                               <h4 className="font-bold text-lg text-indigo-900">{role}</h4>
-                                              <p className="text-xs text-indigo-600 italic mb-3">{ROLE_DEFINITIONS[role].description}</p>
-                                              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                                  <div>
-                                                      <label className="block text-xs font-bold text-gray-500 mb-1">NOMBRE DEL ALUMNO/A *</label>
-                                                      <input 
-                                                        className="w-full border p-2 rounded" 
-                                                        placeholder="Nombre completo"
-                                                        value={membersDraft[idx].name}
-                                                        onChange={e => updateMember(idx, 'name', e.target.value)}
-                                                      />
-                                                  </div>
-                                                  <div>
-                                                      <label className="block text-xs font-bold text-gray-500 mb-1">RESPONSABILIDADES ADICIONALES</label>
-                                                      <input 
-                                                        className="w-full border p-2 rounded" 
-                                                        placeholder="Tareas extra..."
-                                                        value={membersDraft[idx].customTasks}
-                                                        onChange={e => updateMember(idx, 'customTasks', e.target.value)}
-                                                      />
-                                                  </div>
-                                              </div>
+                                              <p className="text-xs text-indigo-600 italic mb-2">{ROLE_DEFINITIONS[role].description}</p>
+                                              <input 
+                                                className="w-full border p-2 rounded text-sm" 
+                                                placeholder="Nombre completo del alumno"
+                                                value={membersDraft[idx].name}
+                                                onChange={e => updateMember(idx, 'name', e.target.value)}
+                                              />
                                           </div>
                                       </div>
                                   </div>
@@ -337,14 +375,9 @@ export default function App() {
                           </div>
                       </section>
                       
-                      <div className="flex flex-col md:flex-row gap-4 pt-6 border-t">
-                          <button onClick={handleExportConfig} className="flex-1 bg-indigo-100 text-indigo-700 py-3 rounded font-bold hover:bg-indigo-200 flex items-center justify-center gap-2">
-                              <Download size={20}/> Exportar Configuración (JSON)
-                          </button>
-                          <button onClick={finishSetup} className="flex-1 bg-indigo-600 text-white py-3 rounded font-bold hover:bg-indigo-700 shadow-lg flex items-center justify-center gap-2">
-                              <Save size={20}/> Guardar y Acceder al Workspace
-                          </button>
-                      </div>
+                      <button onClick={finishSetup} className="w-full bg-indigo-600 text-white py-4 rounded font-bold hover:bg-indigo-700 shadow-lg flex items-center justify-center gap-2 text-lg">
+                          <Save size={20}/> Guardar y Acceder al Workspace
+                      </button>
                   </div>
               </div>
           </div>
@@ -357,10 +390,11 @@ export default function App() {
              {/* HEADER INSTITUCIONAL */}
              <div className="flex justify-between items-center mb-10 border-b-4 border-murcia-red pb-4">
                 <div className="w-1/4">
-                    {project.meta.logoBase64 && <img src={project.meta.logoBase64} alt="Logo Centro" className="max-h-24" />}
+                    {project.meta.logoBase64 && <img src={project.meta.logoBase64} alt="Logo Centro" className="max-h-24 object-contain" />}
                 </div>
                 <div className="w-1/2 text-center">
                     <h2 className="text-2xl font-bold uppercase">{project.meta.centerName || 'Centro Educativo'}</h2>
+                    {project.meta.centerAddress && <p className="text-sm text-gray-600">{project.meta.centerAddress}</p>}
                     <p className="text-sm text-gray-600">Ciclos Formativos de Hostelería y Turismo</p>
                 </div>
                 <div className="w-1/4 text-right">
@@ -456,6 +490,7 @@ export default function App() {
   if (view === 'LANDING') return <LandingView />;
   if (view === 'SETUP') return <SetupView />;
   if (view === 'PRINT') return <PrintView />;
+  if (view === 'FILE_MANAGER') return <FileManagerView />;
 
   return (
     <div className="flex h-screen bg-gray-50 overflow-hidden">
@@ -494,7 +529,12 @@ export default function App() {
                      </select>
                  </div>
              )}
-             <button onClick={handleExport} className="w-full flex items-center justify-center gap-2 bg-gray-800 p-2 rounded text-sm hover:bg-gray-700"><Download size={16}/> {isSidebarOpen && "Exportar JSON"}</button>
+             
+             {/* CENTRAL DE ARCHIVOS / PUZLE */}
+             <button onClick={() => setView('FILE_MANAGER')} className="w-full flex items-center justify-center gap-2 bg-blue-900 p-2 rounded text-sm hover:bg-blue-800 border border-blue-700">
+                <FolderOpen size={16}/> {isSidebarOpen && "Gestión Archivos"}
+             </button>
+
              <button onClick={() => setView('LANDING')} className="w-full flex items-center justify-center gap-2 text-red-400 hover:bg-red-900/20 p-2 rounded text-sm"><LogOut size={16}/> {isSidebarOpen && "Salir"}</button>
         </div>
       </aside>

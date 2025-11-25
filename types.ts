@@ -154,6 +154,7 @@ export interface ProjectState {
   meta: {
     teamName: string;
     centerName?: string;
+    centerAddress?: string; // Dirección del centro
     groupNumber?: string;
     projectName?: string;
     deliveryDate?: string;

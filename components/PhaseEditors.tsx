@@ -1,7 +1,8 @@
+
 import React, { useState, useEffect } from 'react';
 import { ProjectState, Member, AuthorMeta, Dish, Trend, TimelineEvent, Costing, Ingredient, Evaluation, Role, IndividualChecklist } from '../types';
 import { ODS_LIST } from '../constants';
-import { Camera, Plus, Lock, CheckSquare, FileText, Presentation, Upload, Link, Calendar, DollarSign, Calculator, Trash2, Image as ImageIcon, Users } from 'lucide-react';
+import { Camera, Plus, Lock, CheckSquare, FileText, Presentation, Upload, Link, Calendar, DollarSign, Calculator, Trash2, Image as ImageIcon, Users, MapPin } from 'lucide-react';
 
 interface EditorProps {
   project: ProjectState;
@@ -95,6 +96,21 @@ export const Phase1Editor: React.FC<EditorProps> = ({ project, currentUser, onUp
                 <textarea className="w-full h-32 border p-2 rounded" value={project.phase1.justification} onChange={e => onUpdate({...project, phase1: {...project.phase1, justification: e.target.value}})} />
             </div>
             
+            {/* DATOS INSTITUCIONALES EDITABLES */}
+            <div className="pt-4 border-t">
+                 <h3 className="font-bold text-gray-800 mb-2">Datos Institucionales (Editables)</h3>
+                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                     <div>
+                        <label className="block text-sm font-bold text-gray-700 mb-1">Nombre del Centro</label>
+                        <input className="w-full border p-2 rounded" value={project.meta.centerName || ''} onChange={e => onUpdate({...project, meta: {...project.meta, centerName: e.target.value}})} />
+                     </div>
+                     <div>
+                        <label className="block text-sm font-bold text-gray-700 mb-1">Dirección del Centro</label>
+                        <input className="w-full border p-2 rounded" value={project.meta.centerAddress || ''} onChange={e => onUpdate({...project, meta: {...project.meta, centerAddress: e.target.value}})} />
+                     </div>
+                 </div>
+            </div>
+
             {/* ASSETS INSTITUCIONALES */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-4 border-t">
                  <div>
