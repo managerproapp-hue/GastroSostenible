@@ -164,13 +164,37 @@ export const Phase3Editor: React.FC<EditorProps> = ({ project, currentUser, onUp
         <div className="space-y-6">
             <h2 className="text-2xl font-serif text-murcia-red">Fase 3: Oferta</h2>
             <div className="bg-white p-6 rounded shadow border-l-4 border-blue-500">
-                <input className="border p-2 w-full mb-2" placeholder="Nombre Plato" value={editing.name||''} onChange={e=>setEditing({...editing, name:e.target.value})}/>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                    <input className="border p-2 w-full" placeholder="Nombre Plato" value={editing.name||''} onChange={e=>setEditing({...editing, name:e.target.value})}/>
+                    <div className="flex items-center gap-2">
+                        <label className="cursor-pointer bg-gray-100 hover:bg-gray-200 text-gray-700 px-3 py-2 rounded flex items-center gap-2 border flex-1 justify-center">
+                            <Camera size={18} />
+                            <span className="text-sm">{editing.photoBase64 ? 'Cambiar Foto' : 'Subir Foto'}</span>
+                            <input type="file" accept="image/*" className="hidden" onChange={(e) => {
+                                if(e.target.files?.[0]) handleImageResize(e.target.files[0], (b64) => setEditing({...editing, photoBase64: b64}))
+                            }} />
+                        </label>
+                        {editing.photoBase64 && (
+                            <div className="relative group">
+                                <img src={editing.photoBase64} alt="Preview" className="h-10 w-10 object-cover rounded border" />
+                                <button onClick={()=>setEditing({...editing, photoBase64: undefined})} className="absolute -top-1 -right-1 bg-red-500 text-white rounded-full p-0.5 w-4 h-4 flex items-center justify-center text-[10px]">×</button>
+                            </div>
+                        )}
+                    </div>
+                </div>
                 <textarea className="border p-2 w-full mb-2" placeholder="Descripción" value={editing.description||''} onChange={e=>setEditing({...editing, description:e.target.value})}/>
                 <div className="flex gap-2 flex-wrap mb-4">{ODS_LIST.map(o => <button key={o.id} onClick={() => { const s = new Set(editing.ods||[]); if(s.has(o.id)) s.delete(o.id); else s.add(o.id); setEditing({...editing, ods: Array.from(s)}) }} className={`text-xs px-2 py-1 rounded text-white ${o.color} ${editing.ods?.includes(o.id) ? 'ring-2 ring-black' : 'opacity-50'}`}>{o.label}</button>)}</div>
                 <button onClick={save} className="bg-blue-600 text-white px-4 py-2 rounded">Guardar Plato</button>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                {(project.phase3.dishes||[]).map(d => <div key={d.id} className="bg-white p-4 rounded shadow border"><h4 className="font-bold">{d.name}</h4><p className="text-sm">{d.description}</p><button onClick={()=>setEditing(d)} className="text-blue-500 text-sm mt-2">Editar</button></div>)}
+                {(project.phase3.dishes||[]).map(d => (
+                    <div key={d.id} className="bg-white p-4 rounded shadow border">
+                        {d.photoBase64 && <img src={d.photoBase64} alt={d.name} className="w-full h-32 object-cover rounded mb-2"/>}
+                        <h4 className="font-bold">{d.name}</h4>
+                        <p className="text-sm line-clamp-2">{d.description}</p>
+                        <button onClick={()=>setEditing(d)} className="text-blue-500 text-sm mt-2">Editar</button>
+                    </div>
+                ))}
             </div>
         </div>
     );

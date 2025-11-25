@@ -5,7 +5,7 @@ import { ProjectState, Member, ViewState, Role } from './types';
 import { Phase1Editor, Phase2Editor, Phase3Editor, Phase4Editor, Phase5Editor, Phase6Editor } from './components/PhaseEditors';
 import { Dashboard } from './components/Dashboard';
 import { GuideView } from './components/GuideView';
-import { Upload, Download, Printer, User, Menu, FileText, PieChart, Users, CheckCircle, Calculator, MapPin, Calendar, BookOpen, LayoutDashboard, LogOut, PlayCircle, FolderOpen, Plus, Eye, RefreshCw, Save, HelpCircle } from 'lucide-react';
+import { Upload, Download, Printer, Menu, FileText, Users, CheckCircle, Calculator, MapPin, Calendar, BookOpen, LayoutDashboard, LogOut, PlayCircle, FolderOpen, Plus, Eye, RefreshCw, Save, HelpCircle } from 'lucide-react';
 
 export default function App() {
   const [project, setProject] = useState<ProjectState>(() => {
