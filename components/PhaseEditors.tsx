@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { ProjectState, Member, AuthorMeta, Dish, Trend, TimelineEvent, Costing, Ingredient, Evaluation, Role } from '../types';
 import { ODS_LIST } from '../constants';
@@ -9,6 +8,9 @@ interface EditorProps {
   currentUser: Member | null;
   onUpdate: (updatedProject: ProjectState) => void;
 }
+
+// Helper para generar IDs seguros sin depender de crypto.randomUUID
+const generateId = () => Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
 
 const createMeta = (user: Member | null): AuthorMeta => ({
   author: user?.name || 'Anonimo',
@@ -101,7 +103,7 @@ export const Phase2Editor: React.FC<EditorProps> = ({ project, currentUser, onUp
   const [newTrend, setNewTrend] = useState({ title: '', description: '' });
   const addTrend = () => {
     if (!newTrend.title) return;
-    onUpdate({ ...project, phase2: { ...project.phase2, trends: [...(project.phase2.trends||[]), { id: crypto.randomUUID(), ...newTrend, meta: createMeta(currentUser) }] } });
+    onUpdate({ ...project, phase2: { ...project.phase2, trends: [...(project.phase2.trends||[]), { id: generateId(), ...newTrend, meta: createMeta(currentUser) }] } });
     setNewTrend({ title: '', description: '' });
   };
   return (
@@ -129,7 +131,7 @@ export const Phase3Editor: React.FC<EditorProps> = ({ project, currentUser, onUp
     const [editing, setEditing] = useState<Partial<Dish>>({});
     const save = () => {
         if(!editing.name) return;
-        const newDish = { id: editing.id || crypto.randomUUID(), name: editing.name, category: editing.category || 'Principal', description: editing.description || '', ods: editing.ods || [], photoBase64: editing.photoBase64, meta: editing.id ? editing.meta as AuthorMeta : createMeta(currentUser) };
+        const newDish = { id: editing.id || generateId(), name: editing.name, category: editing.category || 'Principal', description: editing.description || '', ods: editing.ods || [], photoBase64: editing.photoBase64, meta: editing.id ? editing.meta as AuthorMeta : createMeta(currentUser) };
         const list = [...(project.phase3.dishes||[])];
         const idx = list.findIndex(d => d.id === newDish.id);
         if(idx >= 0) list[idx] = newDish; else list.push(newDish);

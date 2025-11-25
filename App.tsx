@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { INITIAL_PROJECT_STATE, SAMPLE_PROJECT_STATE, ROLES, ROLE_DEFINITIONS, ZONES } from './constants';
 import { ProjectState, Member, ViewState } from './types';
@@ -7,12 +6,15 @@ import { Dashboard } from './components/Dashboard';
 import { GuideView } from './components/GuideView';
 import { Upload, Download, Printer, Menu, FileText, Users, Calculator, Calendar, BookOpen, LayoutDashboard, LogOut, PlayCircle, FolderOpen, Plus, Eye, Save, HelpCircle } from 'lucide-react';
 
+// Helper seguro para IDs
+const generateId = () => Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
+
 export default function App() {
   const [project, setProject] = useState<ProjectState>(() => {
     const saved = localStorage.getItem('gastro_project');
     const baseState = { 
         ...INITIAL_PROJECT_STATE, 
-        id: crypto.randomUUID(), 
+        id: generateId(), 
         members: [],
         meta: { ...INITIAL_PROJECT_STATE.meta }
     };
@@ -124,7 +126,7 @@ export default function App() {
 
   const loadExampleProject = () => {
     const sample = JSON.parse(JSON.stringify(SAMPLE_PROJECT_STATE));
-    sample.id = crypto.randomUUID();
+    sample.id = generateId();
     sample.meta.createdAt = Date.now();
     setProject(sample);
     setCurrentUser(sample.members[0]);
@@ -170,7 +172,7 @@ export default function App() {
       // Setup state for Architect Config
       const [setupMeta, setSetupMeta] = useState(project.meta || INITIAL_PROJECT_STATE.meta);
       const [membersDraft, setMembersDraft] = useState<Partial<Member>[]>(
-          ROLES.map(role => ({ id: crypto.randomUUID(), role, name: '', customTasks: '' }))
+          ROLES.map(role => ({ id: generateId(), role, name: '', customTasks: '' }))
       );
 
       const updateMember = (index: number, field: keyof Member, value: string) => {
