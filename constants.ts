@@ -155,6 +155,7 @@ export const SAMPLE_PROJECT_STATE: ProjectState = {
         elaborationSteps: 'Pochar cebolla muy lento...',
         criticalPhases: 'Control de temperatura del huevo.',
         ods: ['12'],
+        photoBase64: undefined,
         meta: { author: 'Lucía Ruiz', role: 'Comunicación', timestamp: Date.now() }
       }
     ]

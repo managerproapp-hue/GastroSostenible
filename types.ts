@@ -93,9 +93,9 @@ export interface Phase4Data {
 export interface Ingredient {
   id: string;
   name: string; // Descripción de la pieza
-  grossWeight: number; // Peso despiece
-  pricePerUnit: number; // Coste kilo
-  wastePercentage: number; // Mermas %
+  grossWeight: number; // Cantidad
+  unit: string; // Unidad (Kg, L, Ud)
+  pricePerUnit: number; // Precio unitario
 }
 
 export interface Costing {
@@ -103,7 +103,7 @@ export interface Costing {
   supplier: string; // Nombre Proveedor
   date: string;
   ingredients: Ingredient[];
-  portionWeight: number; // Peso ración
+  portionWeight: number; // Peso ración (informativo)
   portions: number; // Número de raciones
   multiplier: number; // Coeficiente multiplicador
   totalCost: number; // Coste total calculado

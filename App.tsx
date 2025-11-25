@@ -46,7 +46,7 @@ export default function App() {
   });
 
   const [view, setView] = useState<ViewState>('LANDING');
-  const [activePhase, setActivePhase] = useState<number>(0); // 0 is Dashboard, 99 is Guide
+  const [activePhase, setActivePhase] = useState<number>(0); 
   const [currentUser, setCurrentUser] = useState<Member | null>(null);
   const [isSidebarOpen, setSidebarOpen] = useState(true);
   

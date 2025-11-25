@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { ProjectState, Member, AuthorMeta, Dish, Trend, TimelineEvent, Costing, Ingredient, Evaluation, Role, IndividualChecklist } from '../types';
 import { ODS_LIST } from '../constants';
@@ -293,7 +292,7 @@ export const Phase5Editor: React.FC<EditorProps> = ({ project, currentUser, onUp
     const updateCosting = (updated: Costing) => {
         // Recalculate totals
         const totalIngredientsCost = updated.ingredients.reduce((acc, ing) => {
-            const cost = ing.grossWeight * ing.pricePerUnit; // Simple calculation: weight (kg) * price/kg
+            const cost = ing.grossWeight * ing.pricePerUnit; // Simple calculation: weight * price/unit
             return acc + cost;
         }, 0);
         
@@ -310,8 +309,8 @@ export const Phase5Editor: React.FC<EditorProps> = ({ project, currentUser, onUp
             id: generateId(),
             name: '',
             grossWeight: 0,
-            pricePerUnit: 0,
-            wastePercentage: 0
+            unit: 'Kg',
+            pricePerUnit: 0
         };
         updateCosting({ ...currentCosting, ingredients: [...currentCosting.ingredients, newIng] });
     };
@@ -407,7 +406,12 @@ export const Phase5Editor: React.FC<EditorProps> = ({ project, currentUser, onUp
                                             <input type="number" step="0.001" className="w-full p-1 text-right outline-none" value={ing.grossWeight} onChange={e => updateIngredient(idx, 'grossWeight', Number(e.target.value))} />
                                         </td>
                                         <td className="p-1 border-r border-black text-center text-gray-500">
-                                            Kg/L
+                                            <select className="w-full bg-transparent outline-none" value={ing.unit || 'Kg'} onChange={e => updateIngredient(idx, 'unit', e.target.value)}>
+                                                <option>Kg</option>
+                                                <option>L</option>
+                                                <option>Ud</option>
+                                                <option>g</option>
+                                            </select>
                                         </td>
                                         <td className="p-1 border-r border-black text-right relative">
                                             <input type="number" step="0.01" className="w-full p-1 text-right outline-none" value={ing.pricePerUnit} onChange={e => updateIngredient(idx, 'pricePerUnit', Number(e.target.value))} />
