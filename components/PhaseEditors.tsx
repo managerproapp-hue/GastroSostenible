@@ -2,8 +2,7 @@
 import React, { useState } from 'react';
 import { ProjectState, Member, AuthorMeta, Dish, Trend, TimelineEvent, Costing, Ingredient, Evaluation, Role } from '../types';
 import { ODS_LIST } from '../constants';
-import { generateIdeas } from '../services/geminiService';
-import { Camera, Plus, BrainCircuit, Save, Trash2, Lock, Unlock, Eye, RefreshCw, CheckSquare } from 'lucide-react';
+import { Camera, Plus, Save, Trash2, Lock, Unlock, Eye, RefreshCw, CheckSquare } from 'lucide-react';
 
 interface EditorProps {
   project: ProjectState;
@@ -80,28 +79,6 @@ const RoleCheck = ({
     return <>{children}</>;
 };
 
-const AiAssistant = ({ context, onSuggestion }: { context: string, onSuggestion: (text: string) => void }) => {
-  const [loading, setLoading] = useState(false);
-  const [prompt, setPrompt] = useState('');
-  const handleAsk = async () => {
-    if (!prompt) return;
-    setLoading(true);
-    const res = await generateIdeas(prompt, context);
-    onSuggestion(res);
-    setLoading(false);
-    setPrompt('');
-  };
-  return (
-    <div className="bg-indigo-50 p-4 rounded-lg border border-indigo-200 mt-4">
-      <div className="flex items-center gap-2 mb-2 text-indigo-800 font-semibold"><BrainCircuit size={18} /><span>IA Assistant</span></div>
-      <div className="flex gap-2">
-        <input className="flex-1 border p-2 rounded text-sm" value={prompt} onChange={(e) => setPrompt(e.target.value)} placeholder="Consulta..." />
-        <button onClick={handleAsk} disabled={loading} className="bg-indigo-600 text-white px-4 py-2 rounded text-sm">{loading ? '...' : 'Preguntar'}</button>
-      </div>
-    </div>
-  );
-};
-
 export const Phase1Editor: React.FC<EditorProps> = ({ project, currentUser, onUpdate }) => (
     <div className="space-y-6">
       <div className="flex justify-between items-center border-b pb-2"><h2 className="text-2xl font-serif text-murcia-red">Fase 1: Definición</h2><RoleBadge role="Coordinador" /></div>
@@ -114,7 +91,6 @@ export const Phase1Editor: React.FC<EditorProps> = ({ project, currentUser, onUp
             <div>
                 <label className="block font-bold mb-1">Justificación</label>
                 <textarea className="w-full h-32 border p-2 rounded" value={project.phase1.justification} onChange={e => onUpdate({...project, phase1: {...project.phase1, justification: e.target.value}})} />
-                <AiAssistant context="Justificación proyecto gastronómico" onSuggestion={t => onUpdate({...project, phase1: {...project.phase1, justification: (project.phase1.justification||'') + '\n' + t}})} />
             </div>
         </div>
       </RoleCheck>
