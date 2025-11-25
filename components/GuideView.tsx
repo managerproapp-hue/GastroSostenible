@@ -1,13 +1,12 @@
-
 import React, { useState } from 'react';
-import { ROLE_DEFINITIONS, ROLES } from '../constants';
-import { BookOpen, Users, CheckSquare, HelpCircle, ArrowRight, GitMerge, Download, Upload } from 'lucide-react';
+import { ROLE_DEFINITIONS, ROLES, ZONES, ODS_LIST } from '../constants';
+import { BookOpen, Users, CheckSquare, HelpCircle, ArrowRight, GitMerge, Download, Upload, MapPin, Target } from 'lucide-react';
 
 export const GuideView: React.FC = () => {
-  const [activeTab, setActiveTab] = useState<'metodologia' | 'roles' | 'evaluacion' | 'faq'>('metodologia');
+  const [activeTab, setActiveTab] = useState<'metodologia' | 'roles' | 'contexto' | 'evaluacion' | 'faq'>('metodologia');
 
   return (
-    <div className="max-w-5xl mx-auto space-y-6 pb-12">
+    <div className="max-w-6xl mx-auto space-y-6 pb-12">
       <div className="bg-gradient-to-r from-indigo-900 to-indigo-700 text-white p-8 rounded-xl shadow-lg">
         <h1 className="text-3xl font-serif font-bold mb-2">Guía Didáctica del Alumno</h1>
         <p className="opacity-80 text-lg">Manual de supervivencia para el Proyecto GastroSostenible.</p>
@@ -16,9 +15,10 @@ export const GuideView: React.FC = () => {
       {/* Navigation Tabs */}
       <div className="flex flex-wrap gap-2 border-b border-gray-200">
         {[
-          { id: 'metodologia', label: 'Cómo Funciona (Flujo Puzle)', icon: GitMerge },
-          { id: 'roles', label: 'Roles y Tareas', icon: Users },
-          { id: 'evaluacion', label: 'Criterios de Evaluación', icon: CheckSquare },
+          { id: 'metodologia', label: 'Cómo Funciona', icon: GitMerge },
+          { id: 'roles', label: 'Roles', icon: Users },
+          { id: 'contexto', label: 'Zonas y ODS', icon: MapPin },
+          { id: 'evaluacion', label: 'Evaluación', icon: CheckSquare },
           { id: 'faq', label: 'Ayuda / FAQ', icon: HelpCircle },
         ].map((tab) => (
           <button
@@ -89,7 +89,7 @@ export const GuideView: React.FC = () => {
             <h2 className="text-2xl font-bold text-gray-800 mb-4">Responsabilidades por Perfil</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {ROLES.map((role) => (
-                <div key={role} className="border rounded-lg p-5 hover:shadow-md transition-shadow">
+                <div key={role} className="border rounded-lg p-5 hover:shadow-md transition-shadow bg-gray-50/50">
                   <h3 className="text-lg font-bold text-indigo-700 mb-1">{role}</h3>
                   <p className="text-sm text-gray-500 italic mb-3">{ROLE_DEFINITIONS[role].description}</p>
                   <ul className="space-y-2">
@@ -103,6 +103,45 @@ export const GuideView: React.FC = () => {
                 </div>
               ))}
             </div>
+          </div>
+        )}
+
+        {/* TAB: CONTEXTO (Zonas y ODS) */}
+        {activeTab === 'contexto' && (
+          <div className="space-y-8 animate-in fade-in">
+             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                {/* Zonas */}
+                <div className="bg-blue-50/50 border border-blue-100 rounded-xl p-6">
+                   <h3 className="text-xl font-bold text-gray-800 mb-4 flex items-center gap-2">
+                     <MapPin className="text-blue-600" /> Zonas Gastronómicas
+                   </h3>
+                   <ul className="space-y-3">
+                     {ZONES.map((zone, idx) => (
+                       <li key={idx} className="bg-white p-3 rounded shadow-sm text-sm text-gray-700 flex items-center gap-3">
+                         <span className="bg-blue-100 text-blue-700 w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold shrink-0">{idx + 1}</span>
+                         {zone}
+                       </li>
+                     ))}
+                   </ul>
+                </div>
+
+                {/* ODS */}
+                <div className="bg-green-50/50 border border-green-100 rounded-xl p-6">
+                   <h3 className="text-xl font-bold text-gray-800 mb-4 flex items-center gap-2">
+                     <Target className="text-green-600" /> Objetivos (ODS) Prioritarios
+                   </h3>
+                   <div className="flex flex-wrap gap-2">
+                     {ODS_LIST.map((ods) => (
+                       <div key={ods.id} className={`${ods.color} text-white text-xs px-3 py-2 rounded shadow-sm opacity-90 hover:opacity-100 transition-opacity cursor-default`}>
+                         {ods.label}
+                       </div>
+                     ))}
+                   </div>
+                   <p className="text-xs text-gray-500 mt-4 italic">
+                     * Debes vincular al menos un ODS principal a cada plato diseñado en la Fase 3.
+                   </p>
+                </div>
+             </div>
           </div>
         )}
 
