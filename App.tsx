@@ -4,7 +4,8 @@ import { INITIAL_PROJECT_STATE, SAMPLE_PROJECT_STATE, ROLES, ROLE_DEFINITIONS, Z
 import { ProjectState, Member, ViewState, Role } from './types';
 import { Phase1Editor, Phase2Editor, Phase3Editor, Phase4Editor, Phase5Editor, Phase6Editor } from './components/PhaseEditors';
 import { Dashboard } from './components/Dashboard';
-import { Upload, Download, Printer, User, Menu, FileText, PieChart, Users, CheckCircle, Calculator, MapPin, Calendar, BookOpen, LayoutDashboard, LogOut, PlayCircle, FolderOpen, Plus, Eye, RefreshCw, Save } from 'lucide-react';
+import { GuideView } from './components/GuideView';
+import { Upload, Download, Printer, User, Menu, FileText, PieChart, Users, CheckCircle, Calculator, MapPin, Calendar, BookOpen, LayoutDashboard, LogOut, PlayCircle, FolderOpen, Plus, Eye, RefreshCw, Save, HelpCircle } from 'lucide-react';
 
 export default function App() {
   const [project, setProject] = useState<ProjectState>(() => {
@@ -42,7 +43,7 @@ export default function App() {
   });
 
   const [view, setView] = useState<ViewState>('LANDING');
-  const [activePhase, setActivePhase] = useState<number>(0); // 0 is Dashboard
+  const [activePhase, setActivePhase] = useState<number>(0); // 0 is Dashboard, 99 is Guide
   const [currentUser, setCurrentUser] = useState<Member | null>(null);
   const [isSidebarOpen, setSidebarOpen] = useState(true);
 
@@ -380,6 +381,10 @@ export default function App() {
                   <x.i size={20} /> {isSidebarOpen && <span className="ml-3 text-sm">{x.l}</span>}
               </button>
           ))}
+          <div className="my-2 border-t border-gray-800 mx-4"></div>
+          <button onClick={() => setActivePhase(99)} className={`w-full flex items-center p-3 hover:bg-gray-800 border-l-4 ${activePhase === 99 ? 'bg-gray-800 border-murcia-red' : 'border-transparent opacity-60'}`}>
+              <HelpCircle size={20} /> {isSidebarOpen && <span className="ml-3 text-sm">Guía Didáctica</span>}
+          </button>
         </nav>
         <div className="p-4 border-t border-gray-800 bg-gray-950 space-y-3">
              {isSidebarOpen && (
@@ -402,6 +407,7 @@ export default function App() {
          {activePhase === 4 && <Phase4Editor project={project} currentUser={currentUser} onUpdate={setProject} />}
          {activePhase === 5 && <Phase5Editor project={project} currentUser={currentUser} onUpdate={setProject} />}
          {activePhase === 6 && <Phase6Editor project={project} currentUser={currentUser} onUpdate={setProject} />}
+         {activePhase === 99 && <GuideView />}
       </main>
     </div>
   );
