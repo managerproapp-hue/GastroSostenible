@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { ROLE_DEFINITIONS, ROLES, ZONES, ODS_LIST } from '../constants';
 import { BookOpen, Users, CheckSquare, HelpCircle, ArrowRight, GitMerge, Download, Upload, MapPin, Target } from 'lucide-react';
@@ -149,69 +150,138 @@ export const GuideView: React.FC = () => {
         {activeTab === 'evaluacion' && (
           <div className="space-y-8 animate-in fade-in">
              <div className="prose max-w-none text-gray-700">
-                <h2 className="text-2xl font-bold text-gray-900">Criterios de Evaluación Oficiales (BOE)</h2>
-                <p className="text-sm text-gray-500 mb-6">Referencia: BOE-A-2024-10684. Región de Murcia.</p>
+                <div className="border-b pb-4 mb-6">
+                    <h2 className="text-2xl font-bold text-gray-900">Criterios de Evaluación Oficiales</h2>
+                    <p className="text-sm text-gray-500">
+                        Fuente: BOLETÍN OFICIAL DEL ESTADO. Núm. 129, Martes 28 de mayo de 2024, Sec. I. Pág. 61079. cve: BOE-A-2024-10684. REGIÓN DE MURCIA.
+                    </p>
+                </div>
 
-                <div className="space-y-6">
-                    <div className="bg-gray-50 p-6 rounded-lg border border-gray-200">
-                        <h3 className="text-xl font-bold text-indigo-800 mb-4">Módulo de Proyecto (Principal)</h3>
-                        
-                        <div className="space-y-4">
-                            <div>
-                                <h4 className="font-bold text-gray-900">RA 1 - Análisis y Caracterización</h4>
-                                <ul className="list-disc pl-5 text-sm space-y-1 mt-2">
-                                    <li>Identificación de modelos empresariales y estructura organizativa.</li>
-                                    <li>Definición de funciones, roles y responsabilidades.</li>
-                                    <li>Evaluación del volumen de negocio y estrategia de demanda.</li>
-                                    <li>Relación con los <strong>Objetivos de Desarrollo Sostenible (ODS)</strong>.</li>
-                                </ul>
-                            </div>
-                            
-                            <div>
-                                <h4 className="font-bold text-gray-900">RA 2 - Propuesta de Soluciones (Viabilidad)</h4>
-                                <ul className="list-disc pl-5 text-sm space-y-1 mt-2">
-                                    <li>Detección de necesidades y propuestas innovadoras.</li>
-                                    <li>Análisis de <strong>viabilidad técnica y económica</strong>.</li>
-                                    <li>Presupuesto detallado y documentación técnica.</li>
-                                </ul>
-                            </div>
-
-                            <div>
-                                <h4 className="font-bold text-gray-900">RA 3 - Planificación y Ejecución</h4>
-                                <ul className="list-disc pl-5 text-sm space-y-1 mt-2">
-                                    <li>Cronología detallada (Timeline) y asignación de recursos.</li>
-                                    <li>Plan de prevención de riesgos y gestión de contingencias.</li>
-                                </ul>
-                            </div>
-
-                            <div>
-                                <h4 className="font-bold text-gray-900">RA 4 - Supervisión y Calidad</h4>
-                                <ul className="list-disc pl-5 text-sm space-y-1 mt-2">
-                                    <li>Seguimiento de resultados y estándares de calidad.</li>
-                                    <li>Documentación final para la evaluación integral.</li>
-                                </ul>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div className="bg-orange-50 p-6 rounded-lg border border-orange-100">
-                            <h3 className="font-bold text-orange-900 mb-2">Ofertas Gastronómicas (Costes)</h3>
-                            <p className="text-sm font-bold text-orange-800">RA 4 - Cálculo de Costes</p>
-                            <p className="text-sm mt-1">
-                                Cálculo y valoración de costes (materias primas, mano de obra, gastos generales) para garantizar la viabilidad económica.
-                            </p>
+                {/* MÓDULO PRINCIPAL */}
+                <div className="bg-gray-50 p-6 rounded-lg border border-gray-200 mb-8">
+                    <h3 className="text-xl font-bold text-indigo-900 border-b border-gray-300 pb-3 mb-4">Módulo de Proyecto (Principal)</h3>
+                    
+                    <div className="space-y-6">
+                        <div>
+                            <h4 className="font-bold text-gray-900 text-sm bg-indigo-50 p-2 rounded">RA1. Analizar y caracterizar las empresas del sector según su estructura organizativa y la naturaleza de sus productos o servicios.</h4>
+                            <ul className="list-disc pl-5 text-sm space-y-1 mt-2 text-gray-700">
+                                <li>a) Se han identificado los modelos empresariales más representativos del sector.</li>
+                                <li>b) Se ha descrito la estructura organizativa típica de estas empresas.</li>
+                                <li>c) Se han definido las funciones y características de los principales departamentos.</li>
+                                <li>d) Se ha especificado el rol y las responsabilidades de cada área funcional.</li>
+                                <li>e) Se ha evaluado el volumen de negocio en función de las demandas y necesidades del cliente.</li>
+                                <li>f) Se ha diseñado una estrategia adecuada para responder a dichas demandas.</li>
+                                <li>g) Se ha valorado la dotación necesaria de recursos humanos y materiales.</li>
+                                <li>h) Se ha implementado un sistema de seguimiento de resultados acorde con la estrategia definida.</li>
+                                <li>i) Se ha establecido la relación entre los productos/servicios ofrecidos y su posible aporte a los Objetivos de Desarrollo Sostenible (ODS).</li>
+                            </ul>
                         </div>
 
-                        <div className="bg-red-50 p-6 rounded-lg border border-red-100">
-                            <h3 className="font-bold text-red-900 mb-2">Productos Culinarios</h3>
-                            <p className="text-sm font-bold text-red-800">RA 3 - Elaboración Creativa</p>
-                            <p className="text-sm mt-1">
-                                Aprovechamiento de recursos, combinaciones lógicas, equilibradas y creativas en la carta.
-                            </p>
+                        <div>
+                            <h4 className="font-bold text-gray-900 text-sm bg-indigo-50 p-2 rounded">RA2. Proponer soluciones viables a las necesidades del sector, considerando costes y desarrollando un proyecto básico.</h4>
+                            <ul className="list-disc pl-5 text-sm space-y-1 mt-2 text-gray-700">
+                                <li>a) Se han detectado y priorizado las necesidades del sector.</li>
+                                <li>b) Se han generado, en equipo, propuestas de solución.</li>
+                                <li>c) Se ha recopilado información relevante sobre las soluciones planteadas.</li>
+                                <li>d) Se han incorporado elementos innovadores con potencial de aplicación práctica.</li>
+                                <li>e) Se ha realizado un análisis de viabilidad técnica de las propuestas.</li>
+                                <li>f) Se han definido las partes esenciales que componen el proyecto.</li>
+                                <li>g) Se ha estimado la dotación de recursos humanos y materiales requeridos.</li>
+                                <li>h) Se ha elaborado un presupuesto económico detallado.</li>
+                                <li>i) Se ha redactado la documentación técnica necesaria para el diseño del proyecto.</li>
+                                <li>j) Se han considerado los aspectos de calidad inherentes al proyecto.</li>
+                                <li>k) Se ha presentado públicamente el contenido más relevante del proyecto propuesto.</li>
+                            </ul>
+                        </div>
+
+                        <div>
+                            <h4 className="font-bold text-gray-900 text-sm bg-indigo-50 p-2 rounded">RA3. Planificar la ejecución de las actividades derivadas de la solución propuesta, definiendo un plan de intervención y su documentación asociada.</h4>
+                            <ul className="list-disc pl-5 text-sm space-y-1 mt-2 text-gray-700">
+                                <li>a) Se ha establecido una cronología detallada para cada actividad.</li>
+                                <li>b) Se han asignado los recursos y la logística necesarios para cada fase.</li>
+                                <li>c) Se han identificado los permisos o autorizaciones obligatorios, en caso de requerirse.</li>
+                                <li>d) Se han detectado las actividades con riesgos potenciales durante su ejecución.</li>
+                                <li>e) Se ha integrado el plan de prevención de riesgos laborales y se han previsto los equipos de protección necesarios.</li>
+                                <li>f) Se han asignado recursos humanos y materiales específicos a cada tarea.</li>
+                                <li>g) Se han contemplado posibles contingencias o imprevistos.</li>
+                                <li>h) Se han diseñado medidas correctivas para hacer frente a dichos imprevistos.</li>
+                                <li>i) Se ha elaborado toda la documentación técnica y administrativa requerida.</li>
+                            </ul>
+                        </div>
+
+                        <div>
+                            <h4 className="font-bold text-gray-900 text-sm bg-indigo-50 p-2 rounded">RA4. Supervisar la ejecución de las actividades, asegurando el cumplimiento del plan establecido.</h4>
+                            <ul className="list-disc pl-5 text-sm space-y-1 mt-2 text-gray-700">
+                                <li>a) Se ha definido un procedimiento claro para el seguimiento de las actividades.</li>
+                                <li>b) Se ha verificado que los resultados obtenidos cumplen con los estándares de calidad esperados.</li>
+                                <li>c) Se han detectado desviaciones respecto al plan inicial o a los resultados previstos.</li>
+                                <li>d) Se ha comunicado oportunamente cualquier desviación relevante a los responsables.</li>
+                                <li>e) Se han implementado y documentado las acciones correctivas necesarias.</li>
+                                <li>f) Se ha generado la documentación final para la evaluación integral de las actividades y del proyecto global.</li>
+                            </ul>
+                        </div>
+
+                         <div>
+                            <h4 className="font-bold text-gray-900 text-sm bg-indigo-50 p-2 rounded">RA5. Comunicar información de forma clara, ordenada y estructurada, tanto interna como externamente.</h4>
+                            <ul className="list-disc pl-5 text-sm space-y-1 mt-2 text-gray-700">
+                                <li>a) Se ha mantenido una actitud metódica y organizada en la transmisión de la información.</li>
+                                <li>b) Se ha facilitado comunicación verbal efectiva, tanto en horizontal (entre pares) como en vertical (con superiores o subordinados).</li>
+                                <li>c) Se ha utilizado herramientas informáticas para la comunicación interna en el equipo.</li>
+                                <li>d) Se ha adquirido familiaridad con la terminología técnica del sector en otros idiomas de uso internacional.</li>
+                            </ul>
                         </div>
                     </div>
                 </div>
+
+                {/* OTROS MÓDULOS */}
+                <h3 className="text-xl font-bold text-gray-800 border-b border-gray-300 pb-2 mb-4">RA de otros módulos</h3>
+                
+                <div className="grid grid-cols-1 gap-6">
+                    {/* PRODUCTOS CULINARIOS */}
+                    <div className="bg-red-50 p-6 rounded-lg border border-red-100">
+                        <h4 className="font-bold text-red-900 text-lg mb-2">PRODUCTOS CULINARIOS (Código 0048)</h4>
+                        
+                        <div className="space-y-4">
+                            <div>
+                                <p className="font-bold text-sm text-red-800">RA1. Organiza los procesos productivos y de servicio en cocina, interpretando información oral o escrita.</p>
+                                <ul className="list-disc pl-5 text-sm mt-1 text-gray-700">
+                                    <li>a) Se han identificado y caracterizado los distintos ámbitos de producción y servicio en cocina.</li>
+                                </ul>
+                            </div>
+                            <div>
+                                <p className="font-bold text-sm text-red-800">RA3. Elabora productos culinarios a partir de un conjunto de materias primas, evaluando alternativas creativas y funcionales.</p>
+                                <ul className="list-disc pl-5 text-sm mt-1 text-gray-700">
+                                    <li>b) Se ha valorado el aprovechamiento integral de los recursos disponibles (materias primas, tiempos, técnicas).</li>
+                                    <li>c) Se han diseñado elaboraciones que combinan los ingredientes de manera lógica, equilibrada y creativa.</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* POSTRES Y OFERTAS (Dos columnas) */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div className="bg-purple-50 p-6 rounded-lg border border-purple-100">
+                            <h4 className="font-bold text-purple-900 text-lg mb-2">POSTRES EN RESTAURACIÓN (0028)</h4>
+                            <div>
+                                <p className="font-bold text-sm text-purple-800">RA7. Presenta postres emplatados a partir de elaboraciones de pastelería y repostería, integrando criterios estéticos y funcionales.</p>
+                                <ul className="list-disc pl-5 text-sm mt-1 text-gray-700">
+                                    <li>c) Se han aplicado técnicas de presentación y decoración acordes a las características del producto final y al contexto de servicio, garantizando equilibrio visual, textural y conceptual.</li>
+                                </ul>
+                            </div>
+                        </div>
+
+                        <div className="bg-orange-50 p-6 rounded-lg border border-orange-100">
+                            <h4 className="font-bold text-orange-900 text-lg mb-2">OFERTAS GASTRONÓMICAS (0045)</h4>
+                            <div>
+                                <p className="font-bold text-sm text-orange-800">RA4. Calcula el coste global de la oferta gastronómica, analizando y ponderando todas las variables que lo componen.</p>
+                                <ul className="list-disc pl-5 text-sm mt-1 text-gray-700">
+                                    <li>d) Se han calculado y valorado los costes asociados a cada elaboración de cocina y/o pastelería/repostería, incluyendo materias primas, mano de obra, desperdicios, energía y otros gastos indirectos, con el fin de garantizar la viabilidad económica de la oferta.</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
              </div>
           </div>
         )}

@@ -106,20 +106,38 @@ export interface Phase5Data {
   costings: Costing[];
 }
 
-// Phase 6: Final
+// Phase 6: Final & Defensa (Tarea 5)
+export interface IndividualChecklist {
+  reviewedResearch: boolean; // Fase 1 y 2
+  reviewedDishes: boolean;   // Fase 3
+  defensePrep: boolean;      // Preparación Defensa Oral
+}
+
+export interface Phase6Data {
+  // Parte A: Trabajo Individual
+  individualChecklists: Record<string, IndividualChecklist>; // userId -> Checklist
+
+  // Parte B: Trabajo Grupal - Memoria (Documentación)
+  introduction: string;
+  conclusions: string;
+  bibliography: string;
+  memoryPdfUploaded: boolean; // Mock flag
+
+  // Parte B: Trabajo Grupal - Defensa (Comunicación)
+  presentationUploaded: boolean; // Mock flag
+  virtualMenuUrl: string;
+  physicalMenuUploaded: boolean; // Mock flag
+  rehearsalDate: string;
+
+  // Legacy / Coevaluación
+  evaluations: Evaluation[];
+}
+
 export interface Evaluation {
   evaluator: string;
   targetMember: string;
   score: number; // -1, 0, +1
   comment: string;
-}
-
-export interface Phase6Data {
-  finalRefinementText: string;
-  finalMeta?: AuthorMeta;
-  coverImageBase64?: string;
-  teamImageBase64?: string;
-  evaluations: Evaluation[];
 }
 
 // Master Project State
@@ -128,9 +146,9 @@ export interface ProjectState {
   meta: {
     teamName: string;
     centerName?: string;
-    groupNumber?: string; // Nuevo
-    projectName?: string; // Nuevo
-    deliveryDate?: string; // Nuevo
+    groupNumber?: string;
+    projectName?: string;
+    deliveryDate?: string;
     logoBase64?: string;
     createdAt: number;
   };

@@ -58,13 +58,13 @@ export const ROLE_DEFINITIONS: Record<Role, { description: string, tasks: string
 };
 
 export const ZONES = [
-  'Huerta de Murcia y Oriental',
-  'Campo de Cartagena y Mar Menor',
-  'Valle del Guadalentín',
-  'Noroeste',
-  'Altiplano',
-  'Vega del Segura (Alta y Media)',
-  'Río Mula y Valle de Ricote'
+  'Altiplano (Jumilla, Yecla – vinos, productos de secano)',
+  'Noroeste (Caravaca, Cehegín, Moratalla – montaña, turismo rural)',
+  'Río Mula y Valle de Ricote (Mula, Bullas, Ricote – huertas, frutas)',
+  'Vega del Segura (Alta y Media) (Cieza, Molina de Segura, Alcantarilla – agricultura sostenible)',
+  'Huerta de Murcia y Oriental (Murcia capital, Santomera, Beniel – público urbano)',
+  'Valle del Guadalentín (Lorca, Mazarrón, Águilas, Totana – arroz, mariscos)',
+  'Campo de Cartagena y Mar Menor (Cartagena, Los Alcázares, San Javier, San Pedro – pescados, turismo costero)'
 ];
 
 export const ODS_LIST = [
@@ -93,7 +93,18 @@ export const INITIAL_PROJECT_STATE: ProjectState = {
   phase3: { dishes: [] },
   phase4: { introText: '', objectivesText: '', timeline: [] },
   phase5: { costings: [] },
-  phase6: { finalRefinementText: '', evaluations: [] }
+  phase6: { 
+    individualChecklists: {},
+    introduction: '',
+    conclusions: '',
+    bibliography: '',
+    memoryPdfUploaded: false,
+    presentationUploaded: false,
+    virtualMenuUrl: '',
+    physicalMenuUploaded: false,
+    rehearsalDate: '',
+    evaluations: [] 
+  }
 };
 
 export const SAMPLE_PROJECT_STATE: ProjectState = {
@@ -116,7 +127,7 @@ export const SAMPLE_PROJECT_STATE: ProjectState = {
   phase1: {
     justification: 'El proyecto "La Barraca Sostenible" nace con la vocación de recuperar el patrimonio gastronómico de la Huerta de Murcia, fusionándolo con técnicas de vanguardia.',
     targetAudience: 'Turista cultural y público local concienciado.',
-    gastronomicZone: 'Huerta de Murcia y Oriental'
+    gastronomicZone: 'Huerta de Murcia y Oriental (Murcia capital, Santomera, Beniel – público urbano)'
   },
   phase2: {
     trends: [
@@ -156,7 +167,17 @@ export const SAMPLE_PROJECT_STATE: ProjectState = {
     costings: []
   },
   phase6: {
-    finalRefinementText: '',
+    individualChecklists: {
+        'm1': { reviewedResearch: true, reviewedDishes: true, defensePrep: true }
+    },
+    introduction: 'Este proyecto representa el esfuerzo conjunto...',
+    conclusions: 'En conclusión, la viabilidad es alta...',
+    bibliography: 'INE, Murcia Turística...',
+    memoryPdfUploaded: true,
+    presentationUploaded: false,
+    virtualMenuUrl: 'https://qr.carta.com/labarraca',
+    physicalMenuUploaded: false,
+    rehearsalDate: '2025-03-20',
     evaluations: []
   }
 };

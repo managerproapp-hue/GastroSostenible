@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { INITIAL_PROJECT_STATE, SAMPLE_PROJECT_STATE, ROLES, ROLE_DEFINITIONS, ZONES } from './constants';
 import { ProjectState, Member, ViewState } from './types';
@@ -100,7 +101,11 @@ export default function App() {
         if (importedData.phase1?.targetAudience) merged.phase1.targetAudience = importedData.phase1.targetAudience;
         if (importedData.phase4?.introText) merged.phase4.introText = importedData.phase4.introText;
         if (importedData.phase4?.objectivesText) merged.phase4.objectivesText = importedData.phase4.objectivesText;
-        if (importedData.phase6?.finalRefinementText) merged.phase6.finalRefinementText = importedData.phase6.finalRefinementText;
+        
+        // Fix for missing property 'finalRefinementText'
+        if (importedData.phase6?.introduction) merged.phase6.introduction = importedData.phase6.introduction;
+        if (importedData.phase6?.conclusions) merged.phase6.conclusions = importedData.phase6.conclusions;
+        if (importedData.phase6?.bibliography) merged.phase6.bibliography = importedData.phase6.bibliography;
         
         if (importedData.phase2?.canvas?.updatedBy?.timestamp > (merged.phase2?.canvas?.updatedBy?.timestamp || 0)) {
             merged.phase2.canvas = importedData.phase2.canvas;
