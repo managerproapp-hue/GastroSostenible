@@ -237,7 +237,7 @@ export const GuideView: React.FC = () => {
                       <span className="text-gray-400 group-open:rotate-180 transition-transform">▼</span>
                   </summary>
                   <p className="mt-2 text-gray-600 text-sm">
-                      Ve a la Fase 6 -> Botón "Imprimir Memoria PDF". Asegúrate de que en las opciones de impresión del navegador esté activada la opción "Gráficos en segundo plano" para que se vean los colores.
+                      Ve a la Fase 6 → Botón "Imprimir Memoria PDF". Asegúrate de que en las opciones de impresión del navegador esté activada la opción "Gráficos en segundo plano" para que se vean los colores.
                   </p>
               </details>
 
