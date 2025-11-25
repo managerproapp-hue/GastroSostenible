@@ -1,8 +1,8 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { ProjectState, Member, AuthorMeta, Dish, Trend, TimelineEvent, Costing, Ingredient, Evaluation, Role, IndividualChecklist } from '../types';
 import { ODS_LIST } from '../constants';
-import { Camera, Plus, Lock, CheckSquare, FileText, Presentation, Upload, Link, Calendar } from 'lucide-react';
+import { Camera, Plus, Lock, CheckSquare, FileText, Presentation, Upload, Link, Calendar, DollarSign, Calculator, Trash2 } from 'lucide-react';
 
 interface EditorProps {
   project: ProjectState;
@@ -195,7 +195,192 @@ export const Phase4Editor: React.FC<EditorProps> = ({ project, currentUser, onUp
 };
 
 export const Phase5Editor: React.FC<EditorProps> = ({ project, currentUser, onUpdate }) => {
-    return <div className="p-6 bg-white rounded shadow"><h2 className="text-xl font-bold mb-4">Fase 5: Costes (Rol: Recursos)</h2><p>Selecciona un plato para calcular su escandallo.</p></div>
+    const [selectedDishId, setSelectedDishId] = useState<string>('');
+    
+    // Find costing for selected dish or create default
+    const currentCosting = (project.phase5.costings || []).find(c => c.dishId === selectedDishId) || {
+        dishId: selectedDishId,
+        supplier: '',
+        date: new Date().toISOString().split('T')[0],
+        ingredients: [],
+        portionWeight: 0,
+        portions: 1,
+        multiplier: 3, // Default coefficient
+        totalCost: 0,
+        meta: createMeta(currentUser)
+    };
+
+    const selectedDish = project.phase3.dishes?.find(d => d.id === selectedDishId);
+
+    const updateCosting = (updated: Costing) => {
+        // Recalculate totals
+        const totalIngredientsCost = updated.ingredients.reduce((acc, ing) => {
+            const cost = ing.grossWeight * ing.pricePerUnit; // Simple calculation: weight (kg) * price/kg
+            return acc + cost;
+        }, 0);
+        
+        updated.totalCost = totalIngredientsCost;
+
+        const list = [...(project.phase5.costings || [])];
+        const idx = list.findIndex(c => c.dishId === updated.dishId);
+        if (idx >= 0) list[idx] = updated; else list.push(updated);
+        onUpdate({ ...project, phase5: { ...project.phase5, costings: list } });
+    };
+
+    const addIngredient = () => {
+        const newIng: Ingredient = {
+            id: generateId(),
+            name: '',
+            grossWeight: 0,
+            pricePerUnit: 0,
+            wastePercentage: 0
+        };
+        updateCosting({ ...currentCosting, ingredients: [...currentCosting.ingredients, newIng] });
+    };
+
+    const updateIngredient = (index: number, field: keyof Ingredient, value: any) => {
+        const newIngs = [...currentCosting.ingredients];
+        newIngs[index] = { ...newIngs[index], [field]: value };
+        updateCosting({ ...currentCosting, ingredients: newIngs });
+    };
+
+    const removeIngredient = (index: number) => {
+        const newIngs = [...currentCosting.ingredients];
+        newIngs.splice(index, 1);
+        updateCosting({ ...currentCosting, ingredients: newIngs });
+    };
+
+    const costPerPortion = currentCosting.totalCost / (currentCosting.portions || 1);
+    const pvp = costPerPortion * currentCosting.multiplier;
+
+    return (
+        <div className="space-y-6">
+            <h2 className="text-2xl font-serif text-murcia-red flex items-center gap-2">
+                Fase 5: Costes <RoleBadge role="Recursos"/>
+            </h2>
+
+            {!selectedDishId ? (
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    {(project.phase3.dishes || []).map(d => (
+                        <button key={d.id} onClick={() => setSelectedDishId(d.id)} className="bg-white p-6 rounded shadow border hover:border-blue-500 text-left transition-all">
+                            <h4 className="font-bold text-lg mb-1">{d.name}</h4>
+                            <p className="text-sm text-gray-500">{d.category}</p>
+                            <div className="mt-4 text-xs font-bold text-blue-600">
+                                {project.phase5.costings?.find(c => c.dishId === d.id) ? '✓ Escandallo Iniciado' : '+ Crear Escandallo'}
+                            </div>
+                        </button>
+                    ))}
+                    {(project.phase3.dishes || []).length === 0 && <p className="text-gray-500 italic">Primero crea platos en la Fase 3.</p>}
+                </div>
+            ) : (
+                <div className="animate-in slide-in-from-right-10 fade-in duration-300">
+                    <button onClick={() => setSelectedDishId('')} className="mb-4 text-sm text-gray-500 hover:text-black">← Volver a la lista</button>
+                    
+                    <div className="bg-blue-100 border-2 border-black rounded-none shadow-xl overflow-hidden text-sm">
+                        {/* HEADER FICHA */}
+                        <div className="bg-blue-200 p-4 border-b-2 border-black text-center">
+                            <h3 className="text-xl font-bold uppercase">ESCANDALLO DE PIEZA</h3>
+                            <h4 className="font-bold">TEST DE RENDIMIENTO DE UN PRODUCTO</h4>
+                        </div>
+
+                        <div className="p-4 grid grid-cols-2 gap-x-8 gap-y-2 border-b-2 border-black bg-white">
+                            <div>
+                                <div className="flex justify-between"><span className="font-bold">Nombre del producto:</span> <span>{selectedDish?.name}</span></div>
+                                <div className="flex justify-between items-center"><span className="font-bold">Raciones:</span> <input type="number" className="w-20 border-b border-gray-400 text-right" value={currentCosting.portions} onChange={e => updateCosting({...currentCosting, portions: Number(e.target.value)})} /></div>
+                            </div>
+                            <div>
+                                <div className="flex justify-between items-center"><span className="font-bold">Proveedor:</span> <input className="w-40 border-b border-gray-400" value={currentCosting.supplier} onChange={e => updateCosting({...currentCosting, supplier: e.target.value})} /></div>
+                                <div className="flex justify-between items-center"><span className="font-bold">Fecha:</span> <input type="date" className="w-32 border-b border-gray-400" value={currentCosting.date} onChange={e => updateCosting({...currentCosting, date: e.target.value})} /></div>
+                            </div>
+                        </div>
+
+                        {/* TABLA INGREDIENTES */}
+                        <table className="w-full text-left border-collapse bg-white">
+                            <thead>
+                                <tr className="bg-blue-200 border-b-2 border-black">
+                                    <th className="p-2 border-r border-black w-1/3">Descripción de la pieza</th>
+                                    <th className="p-2 border-r border-black text-right">Peso (Kg)</th>
+                                    <th className="p-2 border-r border-black text-right">% Mermas</th>
+                                    <th className="p-2 border-r border-black text-right">Coste/Kg (€)</th>
+                                    <th className="p-2 border-black text-right bg-blue-300">Coste Total</th>
+                                    <th className="p-1 w-8"></th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {currentCosting.ingredients.map((ing, idx) => (
+                                    <tr key={ing.id} className="border-b border-gray-300">
+                                        <td className="p-1 border-r border-black">
+                                            <input className="w-full p-1 outline-none" placeholder="Ingrediente..." value={ing.name} onChange={e => updateIngredient(idx, 'name', e.target.value)} />
+                                        </td>
+                                        <td className="p-1 border-r border-black">
+                                            <input type="number" step="0.001" className="w-full p-1 text-right outline-none" value={ing.grossWeight} onChange={e => updateIngredient(idx, 'grossWeight', Number(e.target.value))} />
+                                        </td>
+                                        <td className="p-1 border-r border-black">
+                                            <input type="number" className="w-full p-1 text-right outline-none" value={ing.wastePercentage} onChange={e => updateIngredient(idx, 'wastePercentage', Number(e.target.value))} />
+                                        </td>
+                                        <td className="p-1 border-r border-black">
+                                            <input type="number" step="0.01" className="w-full p-1 text-right outline-none" value={ing.pricePerUnit} onChange={e => updateIngredient(idx, 'pricePerUnit', Number(e.target.value))} />
+                                        </td>
+                                        <td className="p-2 text-right font-mono bg-blue-50">
+                                            {(ing.grossWeight * ing.pricePerUnit).toFixed(2)} €
+                                        </td>
+                                        <td className="p-1 text-center">
+                                            <button onClick={() => removeIngredient(idx)} className="text-red-500 hover:text-red-700"><Trash2 size={14}/></button>
+                                        </td>
+                                    </tr>
+                                ))}
+                                <tr>
+                                    <td colSpan={6} className="p-2 bg-gray-50 border-t border-black">
+                                        <button onClick={addIngredient} className="text-blue-600 font-bold text-xs flex items-center gap-1">+ Añadir Ingrediente</button>
+                                    </td>
+                                </tr>
+                            </tbody>
+                            <tfoot>
+                                <tr className="bg-blue-300 font-bold border-t-2 border-black">
+                                    <td colSpan={4} className="p-2 text-right border-r border-black">TOTAL COSTE MATERIA PRIMA:</td>
+                                    <td className="p-2 text-right text-lg">{currentCosting.totalCost.toFixed(2)} €</td>
+                                    <td></td>
+                                </tr>
+                            </tfoot>
+                        </table>
+
+                        {/* CALCULADORA INVERSA Y RENTABILIDAD */}
+                        <div className="border-t-2 border-black bg-blue-200">
+                            <div className="text-center font-bold p-1 border-b border-black">Coste de la Ración</div>
+                            <div className="grid grid-cols-4 divide-x divide-black border-b-2 border-black bg-white">
+                                <div className="p-2 text-center">
+                                    <div className="text-xs font-bold text-gray-500">Coste Total</div>
+                                    <div className="font-mono">{currentCosting.totalCost.toFixed(2)} €</div>
+                                </div>
+                                <div className="p-2 text-center">
+                                    <div className="text-xs font-bold text-gray-500">Nº Raciones</div>
+                                    <div className="font-mono">{currentCosting.portions}</div>
+                                </div>
+                                <div className="p-2 text-center bg-yellow-50">
+                                    <div className="text-xs font-bold text-gray-500">Coste Ración</div>
+                                    <div className="font-bold text-lg">{costPerPortion.toFixed(2)} €</div>
+                                </div>
+                                <div className="p-2 text-center">
+                                    <div className="text-xs font-bold text-gray-500">Coeficiente</div>
+                                    <input type="number" step="0.1" className="w-12 text-center border-b border-blue-500 font-bold" value={currentCosting.multiplier} onChange={e => updateCosting({...currentCosting, multiplier: Number(e.target.value)})} />
+                                </div>
+                            </div>
+                            <div className="p-4 bg-gray-900 text-white flex justify-between items-center">
+                                <div>
+                                    <div className="text-xs opacity-70">PRECIO DE VENTA SUGERIDO (PVP)</div>
+                                    <div className="text-xs opacity-50">(Coste Ración x Coeficiente)</div>
+                                </div>
+                                <div className="text-3xl font-bold font-mono text-green-400">
+                                    {pvp.toFixed(2)} €
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+            )}
+        </div>
+    );
 };
 
 // --- FASE 6: FINAL Y DEFENSA (Tarea 5) ---

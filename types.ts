@@ -83,22 +83,24 @@ export interface Phase4Data {
   timeline: TimelineEvent[];
 }
 
-// Phase 5: Costes (Escandallos)
+// Phase 5: Costes (Escandallos Profesionales)
 export interface Ingredient {
   id: string;
-  name: string;
-  quantity: number;
-  unit: string;
-  pricePerUnit: number;
+  name: string; // Descripción de la pieza
+  grossWeight: number; // Peso despiece
+  pricePerUnit: number; // Coste kilo
+  wastePercentage: number; // Mermas %
 }
 
 export interface Costing {
   dishId: string;
+  supplier: string; // Nombre Proveedor
+  date: string;
   ingredients: Ingredient[];
-  portionWeight: number;
-  portions: number;
-  targetMargin: number; // Percentage 0-100
-  taxRate: number; // 10 or 21 usually
+  portionWeight: number; // Peso ración
+  portions: number; // Número de raciones
+  multiplier: number; // Coeficiente multiplicador
+  totalCost: number; // Coste total calculado
   meta: AuthorMeta;
 }
 

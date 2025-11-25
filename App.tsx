@@ -5,7 +5,7 @@ import { ProjectState, Member, ViewState } from './types';
 import { Phase1Editor, Phase2Editor, Phase3Editor, Phase4Editor, Phase5Editor, Phase6Editor } from './components/PhaseEditors';
 import { Dashboard } from './components/Dashboard';
 import { GuideView } from './components/GuideView';
-import { Upload, Download, Printer, Menu, FileText, Users, Calculator, Calendar, BookOpen, LayoutDashboard, LogOut, PlayCircle, FolderOpen, Plus, Eye, Save, HelpCircle } from 'lucide-react';
+import { Upload, Download, Printer, Menu, FileText, Users, Calculator, Calendar, BookOpen, LayoutDashboard, LogOut, PlayCircle, FolderOpen, Plus, Eye, Save, HelpCircle, ArrowRight } from 'lucide-react';
 
 // Helper seguro para IDs
 const generateId = () => Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
@@ -138,40 +138,64 @@ export default function App() {
     setView('WORKSPACE');
   };
 
-  const LandingView = () => (
-    <div className="min-h-screen bg-gray-950 text-white flex flex-col items-center justify-center p-4">
-      <div className="max-w-6xl w-full">
-        <div className="text-center mb-12 animate-in slide-in-from-top-10 fade-in duration-700">
-            <h1 className="text-6xl font-serif font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-300 via-white to-purple-300 mb-4">
-                GastroSostenible
-            </h1>
-            <p className="text-xl text-gray-400 max-w-2xl mx-auto">
-                Gestión integral de proyectos gastronómicos. 
-                <span className="text-blue-400 font-bold block mt-2">Metodología Flujo Puzle: Distribuye, Trabaja Offline, Fusiona.</span>
-            </p>
-        </div>
+  const continueProject = () => {
+      // Try to find Coordinator or first member
+      const user = project.members.find(m => m.role === 'Coordinador') || project.members[0];
+      if (user) setCurrentUser(user);
+      setView('WORKSPACE');
+  };
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-12 animate-in slide-in-from-bottom-10 fade-in duration-700 delay-150">
-            <button onClick={() => setView('SETUP')} className="group relative bg-indigo-600 hover:bg-indigo-500 p-8 rounded-2xl transition-all hover:scale-[1.02] shadow-xl text-left overflow-hidden">
-                <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity"><PlayCircle size={100} /></div>
-                <h3 className="text-2xl font-bold mb-2 flex items-center gap-2"><Plus size={24}/> Nuevo Proyecto</h3>
-                <p className="text-indigo-100 opacity-80">Configura el equipo, define roles y comienza.</p>
-            </button>
-            <div className="relative group bg-gray-900 border border-gray-800 hover:border-gray-700 p-8 rounded-2xl transition-all hover:scale-[1.02] text-left">
-                <input type="file" accept=".json" onChange={(e) => { if (e.target.files?.[0]) executeSmartMerge(e.target.files[0]).then(() => setView('WORKSPACE')); }} className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-20" />
-                <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity"><FolderOpen size={100} /></div>
-                <h3 className="text-2xl font-bold mb-2 text-white flex items-center gap-2"><Upload size={24}/> Cargar Proyecto</h3>
-                <p className="text-gray-400">Restaura un archivo .JSON previo.</p>
+  const LandingView = () => {
+    const hasSavedProject = project.members.length > 0 && !!project.meta.teamName;
+
+    return (
+        <div className="min-h-screen bg-gray-950 text-white flex flex-col items-center justify-center p-4">
+          <div className="max-w-6xl w-full">
+            <div className="text-center mb-12 animate-in slide-in-from-top-10 fade-in duration-700">
+                <h1 className="text-6xl font-serif font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-300 via-white to-purple-300 mb-4">
+                    GastroSostenible
+                </h1>
+                <p className="text-xl text-gray-400 max-w-2xl mx-auto">
+                    Gestión integral de proyectos gastronómicos. 
+                    <span className="text-blue-400 font-bold block mt-2">Metodología Flujo Puzle: Distribuye, Trabaja Offline, Fusiona.</span>
+                </p>
             </div>
+
+            {hasSavedProject && (
+                <div className="max-w-md mx-auto mb-8 animate-in zoom-in fade-in duration-500">
+                    <button onClick={continueProject} className="w-full bg-green-600 hover:bg-green-500 text-white p-4 rounded-xl shadow-lg border-2 border-green-400 flex items-center justify-center gap-3 transition-transform hover:scale-105">
+                        <PlayCircle size={32} />
+                        <div className="text-left">
+                            <div className="text-xs uppercase font-bold opacity-80">Continuar Proyecto Detectado</div>
+                            <div className="text-xl font-bold">{project.meta.teamName}</div>
+                        </div>
+                        <ArrowRight className="ml-auto"/>
+                    </button>
+                </div>
+            )}
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-12 animate-in slide-in-from-bottom-10 fade-in duration-700 delay-150">
+                <button onClick={() => setView('SETUP')} className="group relative bg-indigo-600 hover:bg-indigo-500 p-8 rounded-2xl transition-all hover:scale-[1.02] shadow-xl text-left overflow-hidden">
+                    <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity"><Plus size={100} /></div>
+                    <h3 className="text-2xl font-bold mb-2 flex items-center gap-2"><Plus size={24}/> Nuevo Proyecto</h3>
+                    <p className="text-indigo-100 opacity-80">Configura el equipo, define roles y comienza.</p>
+                </button>
+                <div className="relative group bg-gray-900 border border-gray-800 hover:border-gray-700 p-8 rounded-2xl transition-all hover:scale-[1.02] text-left">
+                    <input type="file" accept=".json" onChange={(e) => { if (e.target.files?.[0]) executeSmartMerge(e.target.files[0]).then(() => setView('WORKSPACE')); }} className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-20" />
+                    <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity"><FolderOpen size={100} /></div>
+                    <h3 className="text-2xl font-bold mb-2 text-white flex items-center gap-2"><Upload size={24}/> Cargar Proyecto</h3>
+                    <p className="text-gray-400">Restaura un archivo .JSON previo.</p>
+                </div>
+            </div>
+            <div className="text-center animate-in fade-in duration-1000 delay-300">
+                 <button onClick={loadExampleProject} className="text-gray-500 hover:text-white underline transition-all text-sm flex items-center justify-center gap-2 mx-auto">
+                    <Eye size={16}/> Ver Proyecto de Ejemplo (Demo)
+                </button>
+            </div>
+          </div>
         </div>
-        <div className="text-center animate-in fade-in duration-1000 delay-300">
-             <button onClick={loadExampleProject} className="text-gray-500 hover:text-white underline transition-all text-sm flex items-center justify-center gap-2 mx-auto">
-                <Eye size={16}/> Ver Proyecto de Ejemplo (Demo)
-            </button>
-        </div>
-      </div>
-    </div>
-  );
+    );
+  };
 
   const SetupView = () => {
       // Setup state for Architect Config
