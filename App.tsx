@@ -1,11 +1,11 @@
 
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect } from 'react';
 import { INITIAL_PROJECT_STATE, SAMPLE_PROJECT_STATE, ROLES, ROLE_DEFINITIONS, ZONES } from './constants';
-import { ProjectState, Member, ViewState, Role } from './types';
+import { ProjectState, Member, ViewState } from './types';
 import { Phase1Editor, Phase2Editor, Phase3Editor, Phase4Editor, Phase5Editor, Phase6Editor } from './components/PhaseEditors';
 import { Dashboard } from './components/Dashboard';
 import { GuideView } from './components/GuideView';
-import { Upload, Download, Printer, Menu, FileText, Users, CheckCircle, Calculator, MapPin, Calendar, BookOpen, LayoutDashboard, LogOut, PlayCircle, FolderOpen, Plus, Eye, RefreshCw, Save, HelpCircle } from 'lucide-react';
+import { Upload, Download, Printer, Menu, FileText, Users, Calculator, Calendar, BookOpen, LayoutDashboard, LogOut, PlayCircle, FolderOpen, Plus, Eye, Save, HelpCircle } from 'lucide-react';
 
 export default function App() {
   const [project, setProject] = useState<ProjectState>(() => {
@@ -179,16 +179,6 @@ export default function App() {
           setMembersDraft(newMembers);
       };
 
-      const handleLogoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-        if (e.target.files?.[0]) {
-            const reader = new FileReader();
-            reader.readAsDataURL(e.target.files[0]);
-            reader.onload = (ev) => {
-                setSetupMeta({ ...setupMeta, logoBase64: ev.target?.result as string });
-            }
-        }
-      };
-
       const handleExportConfig = () => {
           const configProject = {
               ...project,
@@ -349,7 +339,6 @@ export default function App() {
                  </div>
              </section>
 
-             {/* More print sections can be added here mirroring previous logic but with new data */}
              <div className="no-print fixed bottom-8 right-8 flex gap-4">
                  <button onClick={() => window.print()} className="bg-blue-600 text-white p-4 rounded-full shadow"><Printer/></button>
                  <button onClick={() => setView('WORKSPACE')} className="bg-gray-600 text-white p-4 rounded-full shadow">Volver</button>
