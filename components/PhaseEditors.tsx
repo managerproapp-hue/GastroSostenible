@@ -9,7 +9,7 @@ interface EditorProps {
   onUpdate: (updatedProject: ProjectState) => void;
 }
 
-// Helper para generar IDs seguros sin depender de crypto.randomUUID
+// Helper para generar IDs seguros
 const generateId = () => Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
 
 const createMeta = (user: Member | null): AuthorMeta => ({
@@ -50,7 +50,7 @@ const RoleBadge = ({ role }: { role: Role | 'Todos' }) => {
     };
     return (
         <span className={`text-xs font-bold px-2 py-0.5 rounded border ${colors[role] || colors['Todos']} flex items-center gap-1`}>
-            {role === 'Coordinador' && '👑'} {role}
+            {role === 'Coordinador' ? '👑' : ''} {role}
         </span>
     );
 };
