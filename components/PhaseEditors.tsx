@@ -2,7 +2,7 @@
 import React, { useState } from 'react';
 import { ProjectState, Member, AuthorMeta, Dish, Trend, TimelineEvent, Costing, Ingredient, Evaluation, Role } from '../types';
 import { ODS_LIST } from '../constants';
-import { Camera, Plus, Save, Trash2, Lock, Unlock, Eye, RefreshCw, CheckSquare } from 'lucide-react';
+import { Camera, Plus, Lock } from 'lucide-react';
 
 interface EditorProps {
   project: ProjectState;
