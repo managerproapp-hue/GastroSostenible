@@ -151,6 +151,9 @@ export const SAMPLE_PROJECT_STATE: ProjectState = {
       {
         id: 'd1', name: 'Zarangollo 3.0', category: 'Entrante',
         description: 'Deconstrucción.',
+        ingredientsList: 'Calabacín, Cebolla, Huevo...',
+        elaborationSteps: 'Pochar cebolla muy lento...',
+        criticalPhases: 'Control de temperatura del huevo.',
         ods: ['12'],
         meta: { author: 'Lucía Ruiz', role: 'Comunicación', timestamp: Date.now() }
       }

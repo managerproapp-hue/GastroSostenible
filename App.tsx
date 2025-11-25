@@ -49,6 +49,9 @@ export default function App() {
   const [activePhase, setActivePhase] = useState<number>(0); // 0 is Dashboard, 99 is Guide
   const [currentUser, setCurrentUser] = useState<Member | null>(null);
   const [isSidebarOpen, setSidebarOpen] = useState(true);
+  
+  // Print Mode State: 'PARTIAL' (up to Phase 4) or 'FINAL' (Phase 6 full)
+  const [printMode, setPrintMode] = useState<'PARTIAL' | 'FINAL' | null>(null);
 
   // Auto-save logic
   useEffect(() => {
@@ -102,7 +105,6 @@ export default function App() {
         if (importedData.phase4?.introText) merged.phase4.introText = importedData.phase4.introText;
         if (importedData.phase4?.objectivesText) merged.phase4.objectivesText = importedData.phase4.objectivesText;
         
-        // Fix for missing property 'finalRefinementText'
         if (importedData.phase6?.introduction) merged.phase6.introduction = importedData.phase6.introduction;
         if (importedData.phase6?.conclusions) merged.phase6.conclusions = importedData.phase6.conclusions;
         if (importedData.phase6?.bibliography) merged.phase6.bibliography = importedData.phase6.bibliography;
@@ -110,6 +112,9 @@ export default function App() {
         if (importedData.phase2?.canvas?.updatedBy?.timestamp > (merged.phase2?.canvas?.updatedBy?.timestamp || 0)) {
             merged.phase2.canvas = importedData.phase2.canvas;
         }
+        
+        if (importedData.meta.logoBase64) merged.meta.logoBase64 = importedData.meta.logoBase64;
+        if (importedData.meta.groupPhotoBase64) merged.meta.groupPhotoBase64 = importedData.meta.groupPhotoBase64;
 
         setProject(merged);
         alert(`Fusión completada con datos de ${importedData.meta.teamName}.`);
@@ -139,10 +144,16 @@ export default function App() {
   };
 
   const continueProject = () => {
-      // Try to find Coordinator or first member
       const user = project.members.find(m => m.role === 'Coordinador') || project.members[0];
       if (user) setCurrentUser(user);
       setView('WORKSPACE');
+  };
+  
+  const initiatePrint = () => {
+      // Ask user mode
+      const choice = window.confirm("¿Deseas imprimir la Memoria Final Completa (Aceptar) o solo la Memoria Parcial hasta Fase 4 (Cancelar)?");
+      setPrintMode(choice ? 'FINAL' : 'PARTIAL');
+      setView('PRINT');
   };
 
   const LandingView = () => {
@@ -198,7 +209,6 @@ export default function App() {
   };
 
   const SetupView = () => {
-      // Setup state for Architect Config
       const [setupMeta, setSetupMeta] = useState(project.meta || INITIAL_PROJECT_STATE.meta);
       const [membersDraft, setMembersDraft] = useState<Partial<Member>[]>(
           ROLES.map(role => ({ id: generateId(), role, name: '', customTasks: '' }))
@@ -237,7 +247,6 @@ export default function App() {
               members: validMembers,
               phase1: { ...project.phase1, gastronomicZone: project.phase1.gastronomicZone || ZONES[0] }
           });
-          // Set current user as the first one defined (usually Coordinator) or let them choose
           setCurrentUser(validMembers[0]);
           setView('WORKSPACE');
       };
@@ -254,13 +263,16 @@ export default function App() {
                   </div>
 
                   <div className="p-8 space-y-8">
-                      {/* Section 1: General Data */}
                       <section>
                           <h3 className="text-indigo-900 font-bold mb-4 flex items-center gap-2"><BookOpen size={20}/> Datos Generales</h3>
                           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                               <div>
                                   <label className="block text-sm font-bold text-gray-700 mb-1">Nombre del Equipo</label>
                                   <input className="w-full border p-2 rounded" placeholder="Ej: Los Innovadores" value={setupMeta.teamName} onChange={e => setSetupMeta({...setupMeta, teamName: e.target.value})} />
+                              </div>
+                              <div>
+                                  <label className="block text-sm font-bold text-gray-700 mb-1">Nombre del Centro</label>
+                                  <input className="w-full border p-2 rounded" placeholder="Ej: CIFP Hostelería" value={setupMeta.centerName || ''} onChange={e => setSetupMeta({...setupMeta, centerName: e.target.value})} />
                               </div>
                               <div>
                                   <label className="block text-sm font-bold text-gray-700 mb-1">Número de Grupo</label>
@@ -288,7 +300,6 @@ export default function App() {
                           </div>
                       </section>
 
-                      {/* Section 2: Roles */}
                       <section>
                           <h3 className="text-indigo-900 font-bold mb-4 flex items-center gap-2"><Users size={20}/> Asignación de Roles y Responsabilidades</h3>
                           <div className="space-y-4">
@@ -299,14 +310,6 @@ export default function App() {
                                           <div className="flex-1">
                                               <h4 className="font-bold text-lg text-indigo-900">{role}</h4>
                                               <p className="text-xs text-indigo-600 italic mb-3">{ROLE_DEFINITIONS[role].description}</p>
-                                              
-                                              <div className="bg-white p-3 rounded border border-gray-200 mb-3 text-xs text-gray-600">
-                                                  <strong className="block mb-1 text-gray-800">RESPONSABILIDADES OFICIALES:</strong>
-                                                  <ul className="list-disc pl-4 space-y-1">
-                                                      {ROLE_DEFINITIONS[role].tasks.map((t, i) => <li key={i}>{t}</li>)}
-                                                  </ul>
-                                              </div>
-
                                               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                                   <div>
                                                       <label className="block text-xs font-bold text-gray-500 mb-1">NOMBRE DEL ALUMNO/A *</label>
@@ -342,7 +345,6 @@ export default function App() {
                               <Save size={20}/> Guardar y Acceder al Workspace
                           </button>
                       </div>
-                      <p className="text-center text-xs text-gray-400">Rellena todos los nombres obligatorios para continuar.</p>
                   </div>
               </div>
           </div>
@@ -352,27 +354,100 @@ export default function App() {
   const PrintView = () => (
     <div className="bg-white min-h-screen text-black font-serif">
         <div className="max-w-[21cm] mx-auto p-12 print:p-0">
-             <div className="text-center mb-16 border-b-2 border-black pb-8">
-                 <h1 className="text-5xl font-bold mb-4">{project.meta.projectName || project.meta.teamName}</h1>
-                 <h2 className="text-2xl text-gray-600 mb-2">{project.meta.centerName}</h2>
-                 <p className="text-lg italic">Zona: {project.phase1.gastronomicZone}</p>
+             {/* HEADER INSTITUCIONAL */}
+             <div className="flex justify-between items-center mb-10 border-b-4 border-murcia-red pb-4">
+                <div className="w-1/4">
+                    {project.meta.logoBase64 && <img src={project.meta.logoBase64} alt="Logo Centro" className="max-h-24" />}
+                </div>
+                <div className="w-1/2 text-center">
+                    <h2 className="text-2xl font-bold uppercase">{project.meta.centerName || 'Centro Educativo'}</h2>
+                    <p className="text-sm text-gray-600">Ciclos Formativos de Hostelería y Turismo</p>
+                </div>
+                <div className="w-1/4 text-right">
+                    <div className="text-4xl font-bold text-gray-200">2025</div>
+                </div>
              </div>
-             
-             <section className="mb-12">
-                 <h3 className="text-2xl font-bold border-b border-gray-400 mb-4">1. Equipo y Roles</h3>
-                 <div className="grid grid-cols-2 gap-4">
+
+             <div className="text-center mb-16">
+                 <h1 className="text-5xl font-bold mb-4 leading-tight">{project.meta.projectName || project.meta.teamName}</h1>
+                 <p className="text-xl italic text-gray-600 mb-8">{project.phase1.gastronomicZone}</p>
+                 
+                 {project.meta.groupPhotoBase64 && (
+                     <div className="mb-8 flex justify-center">
+                         <img src={project.meta.groupPhotoBase64} alt="Foto Equipo" className="rounded-lg shadow-lg max-h-64 object-cover" />
+                     </div>
+                 )}
+
+                 <div className="grid grid-cols-2 gap-4 max-w-lg mx-auto text-left bg-gray-50 p-6 rounded-lg border">
                      {project.members.map(m => (
-                         <div key={m.id} className="border p-4 rounded bg-gray-50">
-                             <span className="block font-bold text-lg">{m.name}</span>
-                             <span className="block text-sm text-gray-500 uppercase tracking-widest">{m.role}</span>
+                         <div key={m.id}>
+                             <span className="block font-bold">{m.name}</span>
+                             <span className="block text-xs uppercase text-gray-500">{m.role}</span>
                          </div>
                      ))}
                  </div>
-             </section>
+             </div>
+             
+             {/* CONTENIDO PARCIAL vs FINAL */}
+             <div className="space-y-12">
+                 <section className="print-break-after">
+                     <h3 className="text-2xl font-bold border-b border-gray-400 mb-4 text-murcia-red">1. Introducción y Justificación</h3>
+                     <p className="text-justify whitespace-pre-wrap">{project.phase1.justification}</p>
+                 </section>
+                 
+                 <section className="print-break-after">
+                     <h3 className="text-2xl font-bold border-b border-gray-400 mb-4 text-murcia-red">2. Oferta Gastronómica</h3>
+                     <div className="grid grid-cols-1 gap-8">
+                         {project.phase3.dishes?.map(d => (
+                             <div key={d.id} className="flex gap-6 print-avoid-break mb-8 border-b pb-8">
+                                 <div className="w-1/3">
+                                     {d.photoBase64 ? (
+                                         <img src={d.photoBase64} alt={d.name} className="w-full h-48 object-cover rounded border" />
+                                     ) : (
+                                         <div className="w-full h-48 bg-gray-100 flex items-center justify-center text-gray-400 border">Sin Foto</div>
+                                     )}
+                                 </div>
+                                 <div className="w-2/3">
+                                     <h4 className="text-xl font-bold mb-1">{d.name}</h4>
+                                     <span className="text-xs font-bold bg-gray-200 px-2 py-1 rounded">{d.category}</span>
+                                     <p className="mt-2 text-sm italic">{d.description}</p>
+                                     <div className="mt-4 grid grid-cols-2 gap-4 text-xs">
+                                         <div>
+                                             <strong className="block mb-1">Ingredientes:</strong>
+                                             <p className="whitespace-pre-wrap">{d.ingredientsList}</p>
+                                         </div>
+                                         <div>
+                                             <strong className="block mb-1">Elaboración:</strong>
+                                             <p className="whitespace-pre-wrap line-clamp-6">{d.elaborationSteps}</p>
+                                         </div>
+                                     </div>
+                                 </div>
+                             </div>
+                         ))}
+                     </div>
+                 </section>
+                 
+                 {printMode === 'FINAL' && (
+                     <>
+                        <section className="print-break-after">
+                            <h3 className="text-2xl font-bold border-b border-gray-400 mb-4 text-murcia-red">3. Escandallos y Costes</h3>
+                            {/* Aquí iría una tabla resumen de costes */}
+                            <p>Ver Anexo detallado de fichas técnicas.</p>
+                        </section>
+                        <section className="print-break-after">
+                             <h3 className="text-2xl font-bold border-b border-gray-400 mb-4 text-murcia-red">4. Carta Física y Digital</h3>
+                             <p>Enlace Carta Virtual: {project.phase6.virtualMenuUrl || 'No definido'}</p>
+                        </section>
+                     </>
+                 )}
+             </div>
 
              <div className="no-print fixed bottom-8 right-8 flex gap-4">
-                 <button onClick={() => window.print()} className="bg-blue-600 text-white p-4 rounded-full shadow"><Printer/></button>
-                 <button onClick={() => setView('WORKSPACE')} className="bg-gray-600 text-white p-4 rounded-full shadow">Volver</button>
+                 <div className="bg-black text-white px-4 py-2 rounded shadow opacity-80 pointer-events-none">
+                     Modo: {printMode === 'PARTIAL' ? 'Memoria Parcial (F1-F4)' : 'Memoria Final Completa'}
+                 </div>
+                 <button onClick={() => window.print()} className="bg-blue-600 text-white p-4 rounded-full shadow hover:bg-blue-700"><Printer/></button>
+                 <button onClick={() => setView('WORKSPACE')} className="bg-gray-600 text-white p-4 rounded-full shadow hover:bg-gray-700">Volver</button>
              </div>
         </div>
     </div>
@@ -407,6 +482,10 @@ export default function App() {
           </button>
         </nav>
         <div className="p-4 border-t border-gray-800 bg-gray-950 space-y-3">
+             <button onClick={initiatePrint} className="w-full flex items-center justify-center gap-2 bg-green-700 text-white p-2 rounded text-sm hover:bg-green-600 shadow-lg border border-green-500 font-bold mb-2">
+                 <Printer size={16}/> {isSidebarOpen && "Imprimir Memoria"}
+             </button>
+
              {isSidebarOpen && (
                  <div className="p-2 bg-gray-800 rounded">
                      <div className="text-xs text-gray-400 font-bold mb-1 uppercase">Identidad Actual</div>

@@ -57,6 +57,12 @@ export interface Dish {
   name: string;
   category: 'Aperitivo' | 'Entrante' | 'Principal' | 'Postre';
   description: string;
+  
+  // New Extended Fields
+  ingredientsList: string; // Lista de ingredientes
+  elaborationSteps: string; // Elaboración paso a paso
+  criticalPhases: string; // Fases importantes
+  
   ods: string[]; // IDs of SDGs
   photoBase64?: string;
   meta: AuthorMeta;
@@ -151,7 +157,8 @@ export interface ProjectState {
     groupNumber?: string;
     projectName?: string;
     deliveryDate?: string;
-    logoBase64?: string;
+    logoBase64?: string; // Logo del centro
+    groupPhotoBase64?: string; // Foto del equipo
     createdAt: number;
   };
   members: Member[];

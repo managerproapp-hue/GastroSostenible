@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { ProjectState, Member, AuthorMeta, Dish, Trend, TimelineEvent, Costing, Ingredient, Evaluation, Role, IndividualChecklist } from '../types';
 import { ODS_LIST } from '../constants';
-import { Camera, Plus, Lock, CheckSquare, FileText, Presentation, Upload, Link, Calendar, DollarSign, Calculator, Trash2 } from 'lucide-react';
+import { Camera, Plus, Lock, CheckSquare, FileText, Presentation, Upload, Link, Calendar, DollarSign, Calculator, Trash2, Image as ImageIcon, Users } from 'lucide-react';
 
 interface EditorProps {
   project: ProjectState;
@@ -95,6 +95,36 @@ export const Phase1Editor: React.FC<EditorProps> = ({ project, currentUser, onUp
                 <label className="block font-bold mb-1">Justificación</label>
                 <textarea className="w-full h-32 border p-2 rounded" value={project.phase1.justification} onChange={e => onUpdate({...project, phase1: {...project.phase1, justification: e.target.value}})} />
             </div>
+            
+            {/* ASSETS INSTITUCIONALES */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-4 border-t">
+                 <div>
+                    <label className="block text-sm font-bold text-gray-700 mb-2 flex items-center gap-2"><ImageIcon size={16}/> Logo del Centro</label>
+                    <label className="cursor-pointer bg-gray-50 hover:bg-gray-100 border-2 border-dashed border-gray-300 rounded-lg p-4 flex flex-col items-center justify-center text-center h-32">
+                        {project.meta.logoBase64 ? (
+                            <img src={project.meta.logoBase64} alt="Logo" className="h-full object-contain" />
+                        ) : (
+                            <span className="text-xs text-gray-500">Click para subir Logo</span>
+                        )}
+                        <input type="file" accept="image/*" className="hidden" onChange={(e) => {
+                            if(e.target.files?.[0]) handleImageResize(e.target.files[0], (b64) => onUpdate({...project, meta: {...project.meta, logoBase64: b64}}))
+                        }} />
+                    </label>
+                 </div>
+                 <div>
+                    <label className="block text-sm font-bold text-gray-700 mb-2 flex items-center gap-2"><Users size={16}/> Foto del Equipo</label>
+                    <label className="cursor-pointer bg-gray-50 hover:bg-gray-100 border-2 border-dashed border-gray-300 rounded-lg p-4 flex flex-col items-center justify-center text-center h-32">
+                         {project.meta.groupPhotoBase64 ? (
+                            <img src={project.meta.groupPhotoBase64} alt="Equipo" className="h-full object-cover" />
+                        ) : (
+                            <span className="text-xs text-gray-500">Click para subir Foto Grupo</span>
+                        )}
+                        <input type="file" accept="image/*" className="hidden" onChange={(e) => {
+                            if(e.target.files?.[0]) handleImageResize(e.target.files[0], (b64) => onUpdate({...project, meta: {...project.meta, groupPhotoBase64: b64}}))
+                        }} />
+                    </label>
+                 </div>
+            </div>
         </div>
       </RoleCheck>
     </div>
@@ -130,48 +160,96 @@ export const Phase2Editor: React.FC<EditorProps> = ({ project, currentUser, onUp
 
 export const Phase3Editor: React.FC<EditorProps> = ({ project, currentUser, onUpdate }) => {
     const [editing, setEditing] = useState<Partial<Dish>>({});
+    
     const save = () => {
         if(!editing.name) return;
-        const newDish = { id: editing.id || generateId(), name: editing.name, category: editing.category || 'Principal', description: editing.description || '', ods: editing.ods || [], photoBase64: editing.photoBase64, meta: editing.id ? editing.meta as AuthorMeta : createMeta(currentUser) };
+        const newDish: Dish = { 
+            id: editing.id || generateId(), 
+            name: editing.name, 
+            category: editing.category || 'Principal', 
+            description: editing.description || '', 
+            ingredientsList: editing.ingredientsList || '',
+            elaborationSteps: editing.elaborationSteps || '',
+            criticalPhases: editing.criticalPhases || '',
+            ods: editing.ods || [], 
+            photoBase64: editing.photoBase64, 
+            meta: editing.id ? editing.meta as AuthorMeta : createMeta(currentUser) 
+        };
         const list = [...(project.phase3.dishes||[])];
         const idx = list.findIndex(d => d.id === newDish.id);
         if(idx >= 0) list[idx] = newDish; else list.push(newDish);
         onUpdate({...project, phase3: {...project.phase3, dishes: list}});
         setEditing({});
     };
+
     return (
         <div className="space-y-6">
             <h2 className="text-2xl font-serif text-murcia-red">Fase 3: Oferta</h2>
             <div className="bg-white p-6 rounded shadow border-l-4 border-blue-500">
+                <h3 className="font-bold text-lg mb-4">{editing.id ? 'Editar Plato' : 'Nuevo Plato'}</h3>
+                
+                {/* Cabecera Plato */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                    <input className="border p-2 w-full" placeholder="Nombre Plato" value={editing.name||''} onChange={e=>setEditing({...editing, name:e.target.value})}/>
-                    <div className="flex items-center gap-2">
-                        <label className="cursor-pointer bg-gray-100 hover:bg-gray-200 text-gray-700 px-3 py-2 rounded flex items-center gap-2 border flex-1 justify-center">
-                            <Camera size={18} />
-                            <span className="text-sm">{editing.photoBase64 ? 'Cambiar Foto' : 'Subir Foto'}</span>
-                            <input type="file" accept="image/*" className="hidden" onChange={(e) => {
-                                if(e.target.files?.[0]) handleImageResize(e.target.files[0], (b64) => setEditing({...editing, photoBase64: b64}))
-                            }} />
-                        </label>
-                        {editing.photoBase64 && (
-                            <div className="relative group">
-                                <img src={editing.photoBase64} alt="Preview" className="h-10 w-10 object-cover rounded border" />
-                                <button onClick={()=>setEditing({...editing, photoBase64: undefined})} className="absolute -top-1 -right-1 bg-red-500 text-white rounded-full p-0.5 w-4 h-4 flex items-center justify-center text-[10px]">×</button>
-                            </div>
-                        )}
+                    <div>
+                        <input className="border p-2 w-full mb-2 font-bold" placeholder="Nombre del Plato" value={editing.name||''} onChange={e=>setEditing({...editing, name:e.target.value})}/>
+                        <select className="border p-2 w-full" value={editing.category || 'Principal'} onChange={e => setEditing({...editing, category: e.target.value as any})}>
+                            <option value="Aperitivo">Aperitivo</option>
+                            <option value="Entrante">Entrante</option>
+                            <option value="Principal">Principal</option>
+                            <option value="Postre">Postre</option>
+                        </select>
+                    </div>
+                    <div className="flex flex-col justify-center">
+                         <div className="flex items-center gap-2">
+                            <label className="cursor-pointer bg-gray-100 hover:bg-gray-200 text-gray-700 px-3 py-2 rounded flex items-center gap-2 border flex-1 justify-center h-full">
+                                <Camera size={18} />
+                                <span className="text-sm">{editing.photoBase64 ? 'Cambiar Foto' : 'Subir Foto'}</span>
+                                <input type="file" accept="image/*" className="hidden" onChange={(e) => {
+                                    if(e.target.files?.[0]) handleImageResize(e.target.files[0], (b64) => setEditing({...editing, photoBase64: b64}))
+                                }} />
+                            </label>
+                            {editing.photoBase64 && (
+                                <img src={editing.photoBase64} alt="Preview" className="h-16 w-16 object-cover rounded border" />
+                            )}
+                        </div>
                     </div>
                 </div>
-                <textarea className="border p-2 w-full mb-2" placeholder="Descripción" value={editing.description||''} onChange={e=>setEditing({...editing, description:e.target.value})}/>
-                <div className="flex gap-2 flex-wrap mb-4">{ODS_LIST.map(o => <button key={o.id} onClick={() => { const s = new Set(editing.ods||[]); if(s.has(o.id)) s.delete(o.id); else s.add(o.id); setEditing({...editing, ods: Array.from(s)}) }} className={`text-xs px-2 py-1 rounded text-white ${o.color} ${editing.ods?.includes(o.id) ? 'ring-2 ring-black' : 'opacity-50'}`}>{o.label}</button>)}</div>
-                <button onClick={save} className="bg-blue-600 text-white px-4 py-2 rounded">Guardar Plato</button>
+
+                {/* Campos Extendidos */}
+                <div className="grid grid-cols-1 gap-4 mb-4">
+                    <div>
+                        <label className="block text-xs font-bold text-gray-500 mb-1">Descripción</label>
+                        <textarea className="border p-2 w-full h-20 text-sm" placeholder="Breve historia del plato..." value={editing.description||''} onChange={e=>setEditing({...editing, description:e.target.value})}/>
+                    </div>
+                    <div>
+                        <label className="block text-xs font-bold text-gray-500 mb-1">Lista de Ingredientes</label>
+                        <textarea className="border p-2 w-full h-24 text-sm font-mono" placeholder="- Ingrediente 1&#10;- Ingrediente 2..." value={editing.ingredientsList||''} onChange={e=>setEditing({...editing, ingredientsList:e.target.value})}/>
+                    </div>
+                    <div>
+                        <label className="block text-xs font-bold text-gray-500 mb-1">Elaboración Paso a Paso</label>
+                        <textarea className="border p-2 w-full h-32 text-sm" placeholder="1. Primero..." value={editing.elaborationSteps||''} onChange={e=>setEditing({...editing, elaborationSteps:e.target.value})}/>
+                    </div>
+                    <div>
+                        <label className="block text-xs font-bold text-gray-500 mb-1">Fases Importantes / Puntos Críticos</label>
+                        <textarea className="border p-2 w-full h-20 text-sm bg-yellow-50" placeholder="¡Cuidado con la temperatura!..." value={editing.criticalPhases||''} onChange={e=>setEditing({...editing, criticalPhases:e.target.value})}/>
+                    </div>
+                </div>
+
+                <div className="flex gap-2 flex-wrap mb-4">
+                    {ODS_LIST.map(o => <button key={o.id} onClick={() => { const s = new Set(editing.ods||[]); if(s.has(o.id)) s.delete(o.id); else s.add(o.id); setEditing({...editing, ods: Array.from(s)}) }} className={`text-xs px-2 py-1 rounded text-white ${o.color} ${editing.ods?.includes(o.id) ? 'ring-2 ring-black' : 'opacity-50'}`}>{o.label}</button>)}
+                </div>
+                
+                <button onClick={save} className="bg-blue-600 text-white px-6 py-2 rounded w-full font-bold">Guardar Ficha de Plato</button>
             </div>
+            
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 {(project.phase3.dishes||[]).map(d => (
-                    <div key={d.id} className="bg-white p-4 rounded shadow border">
+                    <div key={d.id} className="bg-white p-4 rounded shadow border hover:shadow-lg transition-shadow">
                         {d.photoBase64 && <img src={d.photoBase64} alt={d.name} className="w-full h-32 object-cover rounded mb-2"/>}
                         <h4 className="font-bold">{d.name}</h4>
-                        <p className="text-sm line-clamp-2">{d.description}</p>
-                        <button onClick={()=>setEditing(d)} className="text-blue-500 text-sm mt-2">Editar</button>
+                        <span className="text-xs bg-gray-200 px-2 py-1 rounded">{d.category}</span>
+                        <p className="text-sm line-clamp-2 mt-2 text-gray-600">{d.description}</p>
+                        <button onClick={()=>setEditing(d)} className="text-blue-500 text-sm mt-3 font-bold border border-blue-200 px-3 py-1 rounded hover:bg-blue-50 w-full">Editar Ficha</button>
                     </div>
                 ))}
             </div>
@@ -252,6 +330,9 @@ export const Phase5Editor: React.FC<EditorProps> = ({ project, currentUser, onUp
 
     const costPerPortion = currentCosting.totalCost / (currentCosting.portions || 1);
     const pvp = costPerPortion * currentCosting.multiplier;
+    const foodCost = pvp > 0 ? (costPerPortion / pvp) * 100 : 0;
+    const margen = pvp - costPerPortion;
+    const margenPorcentaje = pvp > 0 ? (margen / pvp) * 100 : 0;
 
     return (
         <div className="space-y-6">
@@ -279,100 +360,108 @@ export const Phase5Editor: React.FC<EditorProps> = ({ project, currentUser, onUp
                     <div className="bg-blue-100 border-2 border-black rounded-none shadow-xl overflow-hidden text-sm">
                         {/* HEADER FICHA */}
                         <div className="bg-blue-200 p-4 border-b-2 border-black text-center">
-                            <h3 className="text-xl font-bold uppercase">ESCANDALLO DE PIEZA</h3>
-                            <h4 className="font-bold">TEST DE RENDIMIENTO DE UN PRODUCTO</h4>
+                            <h3 className="text-xl font-bold uppercase">ESCANDALLO DE PLATO</h3>
+                            <h4 className="font-bold">HOJA DE COSTE</h4>
                         </div>
 
                         <div className="p-4 grid grid-cols-2 gap-x-8 gap-y-2 border-b-2 border-black bg-white">
                             <div>
-                                <div className="flex justify-between"><span className="font-bold">Nombre del producto:</span> <span>{selectedDish?.name}</span></div>
-                                <div className="flex justify-between items-center"><span className="font-bold">Raciones:</span> <input type="number" className="w-20 border-b border-gray-400 text-right" value={currentCosting.portions} onChange={e => updateCosting({...currentCosting, portions: Number(e.target.value)})} /></div>
+                                <div className="flex justify-between items-center h-8"><span className="font-bold">Nombre del plato:</span> <span className="flex-1 ml-2 border-b border-gray-300">{selectedDish?.name}</span></div>
                             </div>
-                            <div>
-                                <div className="flex justify-between items-center"><span className="font-bold">Proveedor:</span> <input className="w-40 border-b border-gray-400" value={currentCosting.supplier} onChange={e => updateCosting({...currentCosting, supplier: e.target.value})} /></div>
-                                <div className="flex justify-between items-center"><span className="font-bold">Fecha:</span> <input type="date" className="w-32 border-b border-gray-400" value={currentCosting.date} onChange={e => updateCosting({...currentCosting, date: e.target.value})} /></div>
+                            <div className="flex gap-4">
+                                <div className="flex justify-between items-center border border-black p-1 flex-1">
+                                    <span className="font-bold text-xs mr-2">Nº de raciones</span> 
+                                    <input type="number" className="w-12 text-right font-bold" value={currentCosting.portions} onChange={e => updateCosting({...currentCosting, portions: Number(e.target.value)})} />
+                                </div>
+                                <div className="flex justify-between items-center border border-black p-1 flex-1">
+                                    <span className="font-bold text-xs mr-2">Fecha</span> 
+                                    <input type="date" className="w-24 text-xs" value={currentCosting.date} onChange={e => updateCosting({...currentCosting, date: e.target.value})} />
+                                </div>
                             </div>
                         </div>
 
                         {/* TABLA INGREDIENTES */}
                         <table className="w-full text-left border-collapse bg-white">
                             <thead>
-                                <tr className="bg-blue-200 border-b-2 border-black">
-                                    <th className="p-2 border-r border-black w-1/3">Descripción de la pieza</th>
-                                    <th className="p-2 border-r border-black text-right">Peso (Kg)</th>
-                                    <th className="p-2 border-r border-black text-right">% Mermas</th>
-                                    <th className="p-2 border-r border-black text-right">Coste/Kg (€)</th>
-                                    <th className="p-2 border-black text-right bg-blue-300">Coste Total</th>
+                                <tr className="bg-blue-200 border-b-2 border-black text-xs text-center">
+                                    <th className="p-1 border-r border-black w-1/3">Productos</th>
+                                    <th className="p-1 border-r border-black w-20">Cantidad</th>
+                                    <th className="p-1 border-r border-black w-20">Unidad</th>
+                                    <th className="p-0 border-black" colSpan={2}>
+                                        <div className="border-b border-black">Costes</div>
+                                        <div className="flex">
+                                            <div className="w-1/2 border-r border-black">Precio</div>
+                                            <div className="w-1/2">Coste</div>
+                                        </div>
+                                    </th>
                                     <th className="p-1 w-8"></th>
                                 </tr>
                             </thead>
                             <tbody>
                                 {currentCosting.ingredients.map((ing, idx) => (
-                                    <tr key={ing.id} className="border-b border-gray-300">
+                                    <tr key={ing.id} className="border-b border-gray-300 text-xs">
                                         <td className="p-1 border-r border-black">
                                             <input className="w-full p-1 outline-none" placeholder="Ingrediente..." value={ing.name} onChange={e => updateIngredient(idx, 'name', e.target.value)} />
                                         </td>
-                                        <td className="p-1 border-r border-black">
+                                        <td className="p-1 border-r border-black text-right">
                                             <input type="number" step="0.001" className="w-full p-1 text-right outline-none" value={ing.grossWeight} onChange={e => updateIngredient(idx, 'grossWeight', Number(e.target.value))} />
                                         </td>
-                                        <td className="p-1 border-r border-black">
-                                            <input type="number" className="w-full p-1 text-right outline-none" value={ing.wastePercentage} onChange={e => updateIngredient(idx, 'wastePercentage', Number(e.target.value))} />
+                                        <td className="p-1 border-r border-black text-center text-gray-500">
+                                            Kg/L
                                         </td>
-                                        <td className="p-1 border-r border-black">
+                                        <td className="p-1 border-r border-black text-right relative">
                                             <input type="number" step="0.01" className="w-full p-1 text-right outline-none" value={ing.pricePerUnit} onChange={e => updateIngredient(idx, 'pricePerUnit', Number(e.target.value))} />
                                         </td>
-                                        <td className="p-2 text-right font-mono bg-blue-50">
+                                        <td className="p-1 text-right font-mono bg-blue-50">
                                             {(ing.grossWeight * ing.pricePerUnit).toFixed(2)} €
                                         </td>
                                         <td className="p-1 text-center">
-                                            <button onClick={() => removeIngredient(idx)} className="text-red-500 hover:text-red-700"><Trash2 size={14}/></button>
+                                            <button onClick={() => removeIngredient(idx)} className="text-red-500 hover:text-red-700"><Trash2 size={12}/></button>
                                         </td>
                                     </tr>
                                 ))}
                                 <tr>
-                                    <td colSpan={6} className="p-2 bg-gray-50 border-t border-black">
-                                        <button onClick={addIngredient} className="text-blue-600 font-bold text-xs flex items-center gap-1">+ Añadir Ingrediente</button>
+                                    <td colSpan={6} className="p-2 bg-gray-50 border-t border-black text-center">
+                                        <button onClick={addIngredient} className="text-blue-600 font-bold text-xs">+ Añadir Ingrediente</button>
                                     </td>
                                 </tr>
                             </tbody>
-                            <tfoot>
-                                <tr className="bg-blue-300 font-bold border-t-2 border-black">
-                                    <td colSpan={4} className="p-2 text-right border-r border-black">TOTAL COSTE MATERIA PRIMA:</td>
-                                    <td className="p-2 text-right text-lg">{currentCosting.totalCost.toFixed(2)} €</td>
-                                    <td></td>
-                                </tr>
-                            </tfoot>
                         </table>
 
-                        {/* CALCULADORA INVERSA Y RENTABILIDAD */}
-                        <div className="border-t-2 border-black bg-blue-200">
-                            <div className="text-center font-bold p-1 border-b border-black">Coste de la Ración</div>
-                            <div className="grid grid-cols-4 divide-x divide-black border-b-2 border-black bg-white">
-                                <div className="p-2 text-center">
-                                    <div className="text-xs font-bold text-gray-500">Coste Total</div>
-                                    <div className="font-mono">{currentCosting.totalCost.toFixed(2)} €</div>
-                                </div>
-                                <div className="p-2 text-center">
-                                    <div className="text-xs font-bold text-gray-500">Nº Raciones</div>
-                                    <div className="font-mono">{currentCosting.portions}</div>
-                                </div>
-                                <div className="p-2 text-center bg-yellow-50">
-                                    <div className="text-xs font-bold text-gray-500">Coste Ración</div>
-                                    <div className="font-bold text-lg">{costPerPortion.toFixed(2)} €</div>
-                                </div>
-                                <div className="p-2 text-center">
-                                    <div className="text-xs font-bold text-gray-500">Coeficiente</div>
-                                    <input type="number" step="0.1" className="w-12 text-center border-b border-blue-500 font-bold" value={currentCosting.multiplier} onChange={e => updateCosting({...currentCosting, multiplier: Number(e.target.value)})} />
-                                </div>
+                        {/* TOTALES Y RENTABILIDAD */}
+                        <div className="bg-white border-t-2 border-black text-sm">
+                            <div className="flex border-b border-black">
+                                <div className="w-2/3 p-1 pl-2 font-bold border-r border-black">Coste total de la materia prima</div>
+                                <div className="w-1/3 p-1 pr-2 text-right">{currentCosting.totalCost.toFixed(2)} €</div>
                             </div>
-                            <div className="p-4 bg-gray-900 text-white flex justify-between items-center">
-                                <div>
-                                    <div className="text-xs opacity-70">PRECIO DE VENTA SUGERIDO (PVP)</div>
-                                    <div className="text-xs opacity-50">(Coste Ración x Coeficiente)</div>
+                            <div className="flex border-b border-black">
+                                <div className="w-2/3 p-1 pl-2 font-bold border-r border-black">Coste por ración</div>
+                                <div className="w-1/3 p-1 pr-2 text-right">{costPerPortion.toFixed(2)} €</div>
+                            </div>
+                            <div className="flex border-b border-black">
+                                <div className="w-2/3 p-1 pl-2 font-bold border-r border-black">% Food cost</div>
+                                <div className="w-1/3 p-1 pr-2 text-right">{foodCost.toFixed(1)} %</div>
+                            </div>
+                            <div className="flex border-b border-black">
+                                <div className="w-2/3 p-1 pl-2 font-bold border-r border-black">Margen bruto de explotación</div>
+                                <div className="w-1/3 p-1 pr-2 text-right">{margen.toFixed(2)} €</div>
+                            </div>
+                            <div className="flex border-b border-black">
+                                <div className="w-2/3 p-1 pl-2 font-bold border-r border-black">% Margen bruto de explotación</div>
+                                <div className="w-1/3 p-1 pr-2 text-right">{margenPorcentaje.toFixed(1)} %</div>
+                            </div>
+                            <div className="flex border-b border-black bg-yellow-50">
+                                <div className="w-2/3 p-1 pl-2 font-bold border-r border-black flex justify-between items-center">
+                                    <span>Precio de venta calculado</span>
+                                    <div className="flex items-center gap-2 text-xs font-normal">
+                                        (Coeficiente <input type="number" className="w-10 border text-center font-bold" value={currentCosting.multiplier} onChange={e => updateCosting({...currentCosting, multiplier: Number(e.target.value)})} />)
+                                    </div>
                                 </div>
-                                <div className="text-3xl font-bold font-mono text-green-400">
-                                    {pvp.toFixed(2)} €
-                                </div>
+                                <div className="w-1/3 p-1 pr-2 text-right font-bold text-green-700">{pvp.toFixed(2)} €</div>
+                            </div>
+                             <div className="flex bg-gray-900 text-white font-bold">
+                                <div className="w-2/3 p-2 pl-2 border-r border-gray-700 uppercase">Precio de venta al público por ración</div>
+                                <div className="w-1/3 p-2 pr-2 text-right text-lg">{pvp.toFixed(2)} €</div>
                             </div>
                         </div>
 
