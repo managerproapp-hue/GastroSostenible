@@ -127,8 +127,14 @@ export interface Phase6Data {
 
   // Parte B: Trabajo Grupal - Memoria (Documentación)
   introduction: string;
+  introductionMeta?: AuthorMeta; // Added for strict attribution
+  
   conclusions: string;
+  conclusionsMeta?: AuthorMeta; // Added for strict attribution
+
   bibliography: string;
+  bibliographyMeta?: AuthorMeta; // Added for strict attribution
+
   memoryPdfUploaded: boolean; // Mock flag
 
   // Parte B: Trabajo Grupal - Defensa (Comunicación)

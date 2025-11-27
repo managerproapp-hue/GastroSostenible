@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { INITIAL_PROJECT_STATE, SAMPLE_PROJECT_STATE, ROLES, ROLE_DEFINITIONS, ZONES } from './constants';
-import { ProjectState, Member, ViewState } from './types';
+import { ProjectState, Member, ViewState, AuthorMeta } from './types';
 import { Phase1Editor, Phase2Editor, Phase3Editor, Phase4Editor, Phase5Editor, Phase6Editor } from './components/PhaseEditors';
 import { Dashboard } from './components/Dashboard';
 import { GuideView } from './components/GuideView';
@@ -9,6 +9,16 @@ import { Upload, Download, Printer, Menu, FileText, Users, Calculator, Calendar,
 
 // Helper seguro para IDs
 const generateId = () => Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
+
+// Helper for print attribution
+const PrintAttribution = ({ meta }: { meta?: AuthorMeta }) => {
+    if (!meta) return null;
+    return (
+        <div className="text-xs text-gray-400 mt-2 italic text-right border-t pt-1 inline-block float-right">
+            — {meta.author} ({meta.role})
+        </div>
+    );
+};
 
 export default function App() {
   const [project, setProject] = useState<ProjectState>(() => {
@@ -98,14 +108,33 @@ export default function App() {
       (importedData.phase6?.evaluations || []).forEach(e => localEvals.set(evalKey(e), e));
       merged.phase6.evaluations = Array.from(localEvals.values());
 
-      if (importedData.phase1?.justification) merged.phase1.justification = importedData.phase1.justification;
+      if (importedData.phase1?.justification) {
+          merged.phase1.justification = importedData.phase1.justification;
+          if (importedData.phase1.justificationMeta) merged.phase1.justificationMeta = importedData.phase1.justificationMeta;
+      }
       if (importedData.phase1?.targetAudience) merged.phase1.targetAudience = importedData.phase1.targetAudience;
-      if (importedData.phase4?.introText) merged.phase4.introText = importedData.phase4.introText;
-      if (importedData.phase4?.objectivesText) merged.phase4.objectivesText = importedData.phase4.objectivesText;
       
-      if (importedData.phase6?.introduction) merged.phase6.introduction = importedData.phase6.introduction;
-      if (importedData.phase6?.conclusions) merged.phase6.conclusions = importedData.phase6.conclusions;
-      if (importedData.phase6?.bibliography) merged.phase6.bibliography = importedData.phase6.bibliography;
+      if (importedData.phase4?.introText) {
+          merged.phase4.introText = importedData.phase4.introText;
+          if (importedData.phase4.introMeta) merged.phase4.introMeta = importedData.phase4.introMeta;
+      }
+      if (importedData.phase4?.objectivesText) {
+          merged.phase4.objectivesText = importedData.phase4.objectivesText;
+          if (importedData.phase4.objectivesMeta) merged.phase4.objectivesMeta = importedData.phase4.objectivesMeta;
+      }
+      
+      if (importedData.phase6?.introduction) {
+          merged.phase6.introduction = importedData.phase6.introduction;
+          if (importedData.phase6.introductionMeta) merged.phase6.introductionMeta = importedData.phase6.introductionMeta;
+      }
+      if (importedData.phase6?.conclusions) {
+          merged.phase6.conclusions = importedData.phase6.conclusions;
+          if (importedData.phase6.conclusionsMeta) merged.phase6.conclusionsMeta = importedData.phase6.conclusionsMeta;
+      }
+      if (importedData.phase6?.bibliography) {
+          merged.phase6.bibliography = importedData.phase6.bibliography;
+          if (importedData.phase6.bibliographyMeta) merged.phase6.bibliographyMeta = importedData.phase6.bibliographyMeta;
+      }
       
       if (importedData.phase2?.canvas?.updatedBy?.timestamp > (merged.phase2?.canvas?.updatedBy?.timestamp || 0)) {
           merged.phase2.canvas = importedData.phase2.canvas;
@@ -427,6 +456,7 @@ export default function App() {
                  <section className="print-break-after">
                      <h3 className="text-2xl font-bold border-b border-gray-400 mb-4 text-murcia-red">1. Introducción y Justificación</h3>
                      <p className="text-justify whitespace-pre-wrap">{project.phase1.justification}</p>
+                     <PrintAttribution meta={project.phase1.justificationMeta} />
                  </section>
                  
                  <section className="print-break-after">
@@ -455,22 +485,48 @@ export default function App() {
                                              <p className="whitespace-pre-wrap line-clamp-6">{d.elaborationSteps}</p>
                                          </div>
                                      </div>
+                                     <PrintAttribution meta={d.meta} />
                                  </div>
                              </div>
                          ))}
                      </div>
                  </section>
                  
+                 {/* FASE 4 ATTRIBUTION */}
+                 <section className="print-break-after">
+                     <h3 className="text-2xl font-bold border-b border-gray-400 mb-4 text-murcia-red">3. Análisis y Planificación</h3>
+                     <div className="mb-8">
+                        <h4 className="font-bold text-lg mb-2">Introducción al Sector</h4>
+                        <p className="whitespace-pre-wrap text-justify">{project.phase4.introText}</p>
+                        <PrintAttribution meta={project.phase4.introMeta} />
+                     </div>
+                     <div className="mb-8">
+                        <h4 className="font-bold text-lg mb-2">Objetivos Estratégicos</h4>
+                        <p className="whitespace-pre-wrap text-justify">{project.phase4.objectivesText}</p>
+                        <PrintAttribution meta={project.phase4.objectivesMeta} />
+                     </div>
+                 </section>
+                 
                  {printMode === 'FINAL' && (
                      <>
                         <section className="print-break-after">
-                            <h3 className="text-2xl font-bold border-b border-gray-400 mb-4 text-murcia-red">3. Escandallos y Costes</h3>
+                            <h3 className="text-2xl font-bold border-b border-gray-400 mb-4 text-murcia-red">4. Escandallos y Costes</h3>
                             {/* Aquí iría una tabla resumen de costes */}
                             <p>Ver Anexo detallado de fichas técnicas.</p>
                         </section>
                         <section className="print-break-after">
-                             <h3 className="text-2xl font-bold border-b border-gray-400 mb-4 text-murcia-red">4. Carta Física y Digital</h3>
-                             <p>Enlace Carta Virtual: {project.phase6.virtualMenuUrl || 'No definido'}</p>
+                             <h3 className="text-2xl font-bold border-b border-gray-400 mb-4 text-murcia-red">5. Conclusiones y Defensa</h3>
+                             <div className="mb-8">
+                                <h4 className="font-bold text-lg mb-2">Introducción Final</h4>
+                                <p className="whitespace-pre-wrap text-justify">{project.phase6.introduction}</p>
+                                <PrintAttribution meta={project.phase6.introductionMeta} />
+                             </div>
+                             <div className="mb-8">
+                                <h4 className="font-bold text-lg mb-2">Conclusiones</h4>
+                                <p className="whitespace-pre-wrap text-justify">{project.phase6.conclusions}</p>
+                                <PrintAttribution meta={project.phase6.conclusionsMeta} />
+                             </div>
+                             <p className="mt-8 border-t pt-4">Enlace Carta Virtual: {project.phase6.virtualMenuUrl || 'No definido'}</p>
                         </section>
                      </>
                  )}

@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { ProjectState, Member, AuthorMeta, Dish, Trend, TimelineEvent, Costing, Ingredient, Evaluation, Role, IndividualChecklist } from '../types';
 import { ODS_LIST } from '../constants';
-import { Camera, Plus, Lock, CheckSquare, FileText, Presentation, Upload, Link, Calendar, DollarSign, Calculator, Trash2, Image as ImageIcon, Users, MapPin } from 'lucide-react';
+import { Camera, Plus, Lock, CheckSquare, FileText, Presentation, Upload, Link, Calendar, DollarSign, Calculator, Trash2, Image as ImageIcon, Users, MapPin, Edit3 } from 'lucide-react';
 
 interface EditorProps {
   project: ProjectState;
@@ -56,6 +56,19 @@ const RoleBadge = ({ role }: { role: Role | 'Todos' }) => {
     );
 };
 
+// Componente visual para mostrar quién firmó el aporte
+const AttributionLabel = ({ meta }: { meta?: AuthorMeta }) => {
+    if (!meta) return <div className="text-xs text-gray-400 italic text-right mt-1">Sin editar</div>;
+    return (
+        <div className="flex items-center justify-end gap-2 text-xs mt-1">
+            <span className="text-gray-500 italic flex items-center gap-1"><Edit3 size={10}/> Editado por:</span>
+            <span className="font-bold text-gray-700">{meta.author}</span>
+            <RoleBadge role={meta.role} />
+            <span className="text-gray-400">({new Date(meta.timestamp).toLocaleDateString()})</span>
+        </div>
+    );
+};
+
 const RoleCheck = ({ 
     allowedRoles, 
     currentRole, 
@@ -89,11 +102,12 @@ export const Phase1Editor: React.FC<EditorProps> = ({ project, currentUser, onUp
         <div className="bg-white p-6 rounded shadow space-y-4">
             <div>
                 <label className="block font-bold mb-1">Público Objetivo</label>
-                <input className="w-full border p-2 rounded" value={project.phase1.targetAudience} onChange={e => onUpdate({...project, phase1: {...project.phase1, targetAudience: e.target.value, justificationMeta: createMeta(currentUser)}})} />
+                <input className="w-full border p-2 rounded" value={project.phase1.targetAudience} onChange={e => onUpdate({...project, phase1: {...project.phase1, targetAudience: e.target.value}})} />
             </div>
             <div>
                 <label className="block font-bold mb-1">Justificación</label>
-                <textarea className="w-full h-32 border p-2 rounded" value={project.phase1.justification} onChange={e => onUpdate({...project, phase1: {...project.phase1, justification: e.target.value}})} />
+                <textarea className="w-full h-32 border p-2 rounded" value={project.phase1.justification} onChange={e => onUpdate({...project, phase1: {...project.phase1, justification: e.target.value, justificationMeta: createMeta(currentUser)}})} />
+                <AttributionLabel meta={project.phase1.justificationMeta} />
             </div>
             
             {/* DATOS INSTITUCIONALES EDITABLES */}
@@ -159,7 +173,13 @@ export const Phase2Editor: React.FC<EditorProps> = ({ project, currentUser, onUp
         <h3 className="font-bold mb-4">Tendencias (Todos)</h3>
         <div className="space-y-2 mb-4">
             {(project.phase2.trends||[]).map(t => (
-                <div key={t.id} className="border-l-4 border-murcia-gold bg-gray-50 p-3"><h4 className="font-bold">{t.title}</h4><p className="text-sm">{t.description}</p></div>
+                <div key={t.id} className="border-l-4 border-murcia-gold bg-gray-50 p-3">
+                    <div className="flex justify-between">
+                        <h4 className="font-bold">{t.title}</h4>
+                        <AttributionLabel meta={t.meta} />
+                    </div>
+                    <p className="text-sm mt-1">{t.description}</p>
+                </div>
             ))}
         </div>
         <div className="flex gap-2"><input className="border p-2 flex-1" placeholder="Nueva Tendencia" value={newTrend.title} onChange={e => setNewTrend({...newTrend, title: e.target.value})} /><button onClick={addTrend} className="bg-murcia-red text-white p-2 rounded"><Plus/></button></div>
@@ -167,6 +187,7 @@ export const Phase2Editor: React.FC<EditorProps> = ({ project, currentUser, onUp
       <RoleCheck allowedRoles={['Coordinador']} currentRole={currentUser?.role}>
          <div className="bg-white p-6 rounded shadow"><h3 className="font-bold mb-4">Canvas (Coordinador)</h3>
              <textarea className="w-full h-32 border p-2" value={project.phase2.canvas.valueProp} onChange={e => onUpdate({...project, phase2: {...project.phase2, canvas: {...project.phase2.canvas, valueProp: e.target.value, updatedBy: createMeta(currentUser)}}})} placeholder="Propuesta de Valor..." />
+             <AttributionLabel meta={project.phase2.canvas.updatedBy} />
          </div>
       </RoleCheck>
     </div>
@@ -263,7 +284,9 @@ export const Phase3Editor: React.FC<EditorProps> = ({ project, currentUser, onUp
                         {d.photoBase64 && <img src={d.photoBase64} alt={d.name} className="w-full h-32 object-cover rounded mb-2"/>}
                         <h4 className="font-bold">{d.name}</h4>
                         <span className="text-xs bg-gray-200 px-2 py-1 rounded">{d.category}</span>
-                        <p className="text-sm line-clamp-2 mt-2 text-gray-600">{d.description}</p>
+                        <div className="mt-2 pt-2 border-t">
+                             <AttributionLabel meta={d.meta} />
+                        </div>
                         <button onClick={()=>setEditing(d)} className="text-blue-500 text-sm mt-3 font-bold border border-blue-200 px-3 py-1 rounded hover:bg-blue-50 w-full">Editar Ficha</button>
                     </div>
                 ))}
@@ -279,8 +302,20 @@ export const Phase4Editor: React.FC<EditorProps> = ({ project, currentUser, onUp
             <h2 className="text-2xl font-serif text-murcia-red">Fase 4: Consolidación</h2>
             <div className="flex gap-2 border-b"><button onClick={()=>setTab('intro')} className={`px-4 py-2 ${tab==='intro'?'font-bold border-b-2 border-red-500':''}`}>Intro <RoleBadge role="Documentación"/></button><button onClick={()=>setTab('obj')} className={`px-4 py-2 ${tab==='obj'?'font-bold border-b-2 border-red-500':''}`}>Objetivos <RoleBadge role="Producción"/></button><button onClick={()=>setTab('time')} className={`px-4 py-2 ${tab==='time'?'font-bold border-b-2 border-red-500':''}`}>Timeline <RoleBadge role="Coordinador"/></button></div>
             <div className="bg-white p-6 rounded shadow">
-                {tab==='intro' && <RoleCheck allowedRoles={['Documentación', 'Coordinador']} currentRole={currentUser?.role}><textarea className="w-full h-64 border p-2" value={project.phase4.introText} onChange={e=>onUpdate({...project, phase4:{...project.phase4, introText:e.target.value}})} placeholder="Intro..."/></RoleCheck>}
-                {tab==='obj' && <RoleCheck allowedRoles={['Producción', 'Coordinador']} currentRole={currentUser?.role}><textarea className="w-full h-64 border p-2" value={project.phase4.objectivesText} onChange={e=>onUpdate({...project, phase4:{...project.phase4, objectivesText:e.target.value}})} placeholder="Objetivos..."/></RoleCheck>}
+                {tab==='intro' && (
+                    <RoleCheck allowedRoles={['Documentación', 'Coordinador']} currentRole={currentUser?.role}>
+                        <label className="block font-bold mb-2">Redacción de Introducción</label>
+                        <textarea className="w-full h-64 border p-2" value={project.phase4.introText} onChange={e=>onUpdate({...project, phase4:{...project.phase4, introText:e.target.value, introMeta: createMeta(currentUser)}})} placeholder="Intro..."/>
+                        <AttributionLabel meta={project.phase4.introMeta} />
+                    </RoleCheck>
+                )}
+                {tab==='obj' && (
+                    <RoleCheck allowedRoles={['Producción', 'Coordinador']} currentRole={currentUser?.role}>
+                        <label className="block font-bold mb-2">Redacción de Objetivos</label>
+                        <textarea className="w-full h-64 border p-2" value={project.phase4.objectivesText} onChange={e=>onUpdate({...project, phase4:{...project.phase4, objectivesText:e.target.value, objectivesMeta: createMeta(currentUser)}})} placeholder="Objetivos..."/>
+                        <AttributionLabel meta={project.phase4.objectivesMeta} />
+                    </RoleCheck>
+                )}
                 {tab==='time' && <RoleCheck allowedRoles={['Coordinador']} currentRole={currentUser?.role}><div className="text-center text-gray-500">Gestor de Timeline disponible en versión completa.</div></RoleCheck>}
             </div>
         </div>
@@ -308,11 +343,13 @@ export const Phase5Editor: React.FC<EditorProps> = ({ project, currentUser, onUp
     const updateCosting = (updated: Costing) => {
         // Recalculate totals
         const totalIngredientsCost = updated.ingredients.reduce((acc, ing) => {
-            const cost = ing.grossWeight * ing.pricePerUnit; // Simple calculation: weight * price/unit
+            const cost = ing.grossWeight * ing.pricePerUnit; 
             return acc + cost;
         }, 0);
         
         updated.totalCost = totalIngredientsCost;
+        // Always update author metadata on change
+        updated.meta = createMeta(currentUser);
 
         const list = [...(project.phase5.costings || [])];
         const idx = list.findIndex(c => c.dishId === updated.dishId);
@@ -374,9 +411,12 @@ export const Phase5Editor: React.FC<EditorProps> = ({ project, currentUser, onUp
                     
                     <div className="bg-blue-100 border-2 border-black rounded-none shadow-xl overflow-hidden text-sm">
                         {/* HEADER FICHA */}
-                        <div className="bg-blue-200 p-4 border-b-2 border-black text-center">
+                        <div className="bg-blue-200 p-4 border-b-2 border-black text-center relative">
                             <h3 className="text-xl font-bold uppercase">ESCANDALLO DE PLATO</h3>
                             <h4 className="font-bold">HOJA DE COSTE</h4>
+                            <div className="absolute top-2 right-2">
+                                <AttributionLabel meta={currentCosting.meta} />
+                            </div>
                         </div>
 
                         <div className="p-4 grid grid-cols-2 gap-x-8 gap-y-2 border-b-2 border-black bg-white">
@@ -541,7 +581,7 @@ ${(project.phase3.dishes || []).map(d => `- ${d.name} (${d.category})`).join('\n
         // Put in Intro
         onUpdate({
             ...project,
-            phase6: { ...project.phase6, introduction: draft }
+            phase6: { ...project.phase6, introduction: draft, introductionMeta: createMeta(currentUser) }
         });
         alert("Borrador generado en el campo 'Introducción' con los datos actuales.");
     };
@@ -641,8 +681,9 @@ ${(project.phase3.dishes || []).map(d => `- ${d.name} (${d.category})`).join('\n
                                         className="w-full h-48 border p-3 rounded bg-gray-50 focus:bg-white transition-colors" 
                                         placeholder="Escribe la introducción final que une todas las fases..."
                                         value={project.phase6.introduction}
-                                        onChange={e => onUpdate({...project, phase6: {...project.phase6, introduction: e.target.value}})}
+                                        onChange={e => onUpdate({...project, phase6: {...project.phase6, introduction: e.target.value, introductionMeta: createMeta(currentUser)}})}
                                     />
+                                    <AttributionLabel meta={project.phase6.introductionMeta} />
                                 </div>
                                 
                                 <div>
@@ -651,8 +692,9 @@ ${(project.phase3.dishes || []).map(d => `- ${d.name} (${d.category})`).join('\n
                                         className="w-full h-32 border p-3 rounded bg-gray-50 focus:bg-white transition-colors" 
                                         placeholder="Reflexión final sobre la viabilidad y aprendizaje..."
                                         value={project.phase6.conclusions}
-                                        onChange={e => onUpdate({...project, phase6: {...project.phase6, conclusions: e.target.value}})}
+                                        onChange={e => onUpdate({...project, phase6: {...project.phase6, conclusions: e.target.value, conclusionsMeta: createMeta(currentUser)}})}
                                     />
+                                    <AttributionLabel meta={project.phase6.conclusionsMeta} />
                                 </div>
 
                                 <div>
@@ -661,8 +703,9 @@ ${(project.phase3.dishes || []).map(d => `- ${d.name} (${d.category})`).join('\n
                                         className="w-full h-24 border p-3 rounded bg-gray-50 focus:bg-white transition-colors" 
                                         placeholder="Lista de fuentes consultadas..."
                                         value={project.phase6.bibliography}
-                                        onChange={e => onUpdate({...project, phase6: {...project.phase6, bibliography: e.target.value}})}
+                                        onChange={e => onUpdate({...project, phase6: {...project.phase6, bibliography: e.target.value, bibliographyMeta: createMeta(currentUser)}})}
                                     />
+                                    <AttributionLabel meta={project.phase6.bibliographyMeta} />
                                 </div>
 
                                 <div className="border-t pt-4 flex items-center justify-between">
