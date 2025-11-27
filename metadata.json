@@ -1,7 +1,5 @@
 {
   "name": "GastroSostenible Murcia",
-  "description": "Educational SPA for gastronomy projects using the Puzzle Flow methodology. Features offline-first collaboration, AI assistance, cost calculation, and smart PDF reporting.",
-  "requestFramePermissions": [
-    "camera"
-  ]
+  "description": "Educational SPA for gastronomy projects using the Puzzle Flow methodology. Features offline-first collaboration, cost calculation, and smart PDF reporting.",
+  "requestFramePermissions": []
 }
